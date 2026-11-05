@@ -1,6 +1,6 @@
--- Original NEBULA loaded-map helper; shared Control included; no auto actions.
+-- NEBULA standalone shared Control 1.10. No auto actions.
 do
--- NEBULA CONTROL 1.9 | independent client tools | no remote loaders
+-- NEBULA CONTROL 1.10 | independent client tools | no remote loaders
 -- RightAlt: menu; F6: fly; F7: noclip; F8: ESP. All modules start disabled.
 local P=game:GetService("Players")
 local R=game:GetService("RunService")
@@ -11,11 +11,11 @@ local me=P.LocalPlayer
 assert(me,"NEBULA Control requires a client")
 local env=(getgenv and getgenv())or _G
 if env.__NEBULA_CONTROL and env.__NEBULA_CONTROL.Unload then pcall(env.__NEBULA_CONTROL.Unload)end
-local A={Version="1.9",alive=true,connections={},characterConnections={},playerConnections={},props={},esp={},widgets={},pages={},indexed={},commands={},aliases={},history={},waypoints={},selected=nil}
+local A={Version="1.10",alive=true,connections={},characterConnections={},playerConnections={},props={},esp={},widgets={},pages={},indexed={},commands={},aliases={},history={},waypoints={},selected=nil}
 env.__NEBULA_CONTROL=A
 local S={esp=false,names=true,health=true,distance=true,boxes=false,tracers=false,throughWalls=true,teamColors=true,teamFilter=false,visibleOnly=false,selectedOnly=false,
     espRange=1500,espSize=13,espHue=0.76,boxMode=1,espThickness=1,offscreen=false,
-    silent=false,invisible=false,underground=false,hideDepth=80,neonBody=false,blackBody=false,glassBody=false,outlineSelf=false,bodyLight=false,bodyTrail=false,hideTag=false,hideAccessories=false,autoRotateOff=false,
+    photoBuildSpeed=1,silent=false,invisible=false,underground=false,hideDepth=80,neonBody=false,blackBody=false,glassBody=false,outlineSelf=false,bodyLight=false,bodyTrail=false,hideTag=false,hideAccessories=false,autoRotateOff=false,
     orbit=false,headstand=false,ragdoll=false,bhop=false,ghost=false,rainbowBody=false,respawnPoint=false,
     orbitRadius=5,orbitSpeed=1.2,flingPower=120,flingDuration=0.8,spawnTimeout=60,
     speed=false,speedValue=32,jump=false,jumpValue=70,sprint=false,sprintValue=50,infJump=false,noclip=false,fly=false,hover=false,flySpeed=55,
@@ -208,7 +208,7 @@ local function toggle(p,key,title,desc,aliases)
     A.widgets[key]=function()tween(b,{BackgroundColor3=S[key]and white or Color3.fromRGB(43,43,43)});tween(knob,{Position=UDim2.fromOffset(S[key]and 23 or 3,3),BackgroundColor3=S[key]and Color3.new(0,0,0)or Color3.fromRGB(160,160,160)})end
     A.widgets[key]();on(b.Activated,function()local ok,err=pcall(A.Set,key,not S[key]);if not ok then A.status(tostring(err))end end);index(f,p,title,desc,aliases)
 end
-local ranges={hideDepth={20,250},espThickness={1,4},orbitRadius={2,20},orbitSpeed={0.2,4},flingPower={30,240},flingDuration={0.2,2},spawnTimeout={10,300},espRange={50,5000},espSize={10,22},espHue={0,1},speedValue={8,200},jumpValue={10,200},sprintValue={16,200},flySpeed={5,250},spinSpeed={0.1,5},tpOffset={1,30},tpTime={0.1,8},fovValue={40,120},zoomValue={20,1000},xrayAlpha={0.1,0.95}}
+local ranges={photoBuildSpeed={1,10},hideDepth={20,250},espThickness={1,4},orbitRadius={2,20},orbitSpeed={0.2,4},flingPower={30,240},flingDuration={0.2,2},spawnTimeout={10,300},espRange={50,5000},espSize={10,22},espHue={0,1},speedValue={8,200},jumpValue={10,200},sprintValue={16,200},flySpeed={5,250},spinSpeed={0.1,5},tpOffset={1,30},tpTime={0.1,8},fovValue={40,120},zoomValue={20,1000},xrayAlpha={0.1,0.95}}
 local function slider(p,key,title,step)
     local lo,hi=ranges[key][1],ranges[key][2]
     local f=row(p,61);text(f,title,UDim2.fromOffset(10,6),UDim2.new(1,-100,0,22))
@@ -967,7 +967,7 @@ function N.cleanup()
 end
 
 -- Original helpers and validated photo-plan pipeline. No remote code loaders.
-local H={flags={autoGun=false,knifeHelper=false,repairHelper=false,skillHelper=false},clock=0,photo=nil,anchor=nil,preview=nil}
+local H={photoSpeed=1,maxPhotoSide=200,maxPhotoPixels=40000,maxPhotoBytes=4194304,flags={autoGun=false,knifeHelper=false,repairHelper=false,skillHelper=false},clock=0,photo=nil,anchor=nil,preview=nil}
 N.Helper=H
 function H.tool(name)
     local c=me.Character;local b=me:FindFirstChild("Backpack");return c and c:FindFirstChild(name)or b and b:FindFirstChild(name)
@@ -1036,11 +1036,11 @@ end
 function H.importPhoto(value)
     assert(not (N.job and N.job.kind=="photo"),"Сначала останови постройку")
     local plan=value
-    if type(value)=="string"then assert(#value<=500000,"Схема больше 500 КБ");plan=game:GetService("HttpService"):JSONDecode(value)end
+    if type(value)=="string"then assert(#value<=H.maxPhotoBytes,"Схема больше 4 МБ");plan=game:GetService("HttpService"):JSONDecode(value)end
     assert(type(plan)=="table"and plan.format=="nebula-photo-1","Нужна схема nebula-photo-1 из импортера")
     local function integer(n,lo,hi)return type(n)=="number"and n==n and n%1==0 and n>=lo and n<=hi end
-    assert(integer(plan.width,1,48)and integer(plan.height,1,48),"Размер: 1–48 блоков по стороне")
-    assert(type(plan.pixels)=="table"and #plan.pixels>0 and #plan.pixels<=2304,"Число блоков: 1–2304")
+    assert(integer(plan.width,1,H.maxPhotoSide)and integer(plan.height,1,H.maxPhotoSide),"Размер: 1–200 блоков по стороне")
+    assert(type(plan.pixels)=="table"and #plan.pixels>0 and #plan.pixels<=H.maxPhotoPixels,"Число блоков: 1–40000")
     local material=tostring(plan.material or "PlasticBlock");assert(material:match("^[A-Za-z]+Block$")and #material<=40,"Неверное имя материала")
     local cell=tonumber(plan.cell or 2);assert(finite(cell)and cell>=1 and cell<=6,"Размер блока: 1–6 studs")
     local clean={format="nebula-photo-1",width=plan.width,height=plan.height,cell=cell,material=material,pixels={}};local seen={}
@@ -1061,20 +1061,45 @@ function H.photoCF(index)
     local p=H.photo;local pixel=p.pixels[index]
     return H.anchor*CFrame.new((pixel[1]-(p.width-1)/2)*p.cell,(p.height-1-pixel[2])*p.cell,0)
 end
-function H.clearPreview()destroy(H.preview);H.preview=nil;H.previewIndex=nil end
+function H.clearPreview()destroy(H.preview);H.preview=nil;H.previewIndex=nil;H.previewSeen=nil;H.previewCount=0;H.previewStride=1 end
 function H.previewPhoto()
     assert(not (N.job and N.job.kind=="photo"),"Сначала останови постройку")
     assert(H.photo,"Сначала импортируй схему");if not H.anchor then H.setAnchor()end
-    H.clearPreview();H.preview=new("Folder",{Name="NEBULA_PhotoPreview"},owned);H.previewIndex=1
+    H.clearPreview();H.preview=new("Folder",{Name="NEBULA_PhotoPreview"},owned);H.previewIndex=1;H.previewCount=0;H.previewSeen={};H.previewStride=math.max(1,math.ceil(math.sqrt(#H.photo.pixels/4096)))
     A.status("Создаётся локальное превью; оно ещё не является постройкой на сервере")
 end
 function H.previewStep()
     if not H.previewIndex then return end
-    for _=1,32 do local index=H.previewIndex;local pixel=H.photo.pixels[index]
+    local stride=H.previewStride or 1;local p=H.photo
+    for _=1,(stride==1 and 32 or 256)do
+        local index=H.previewIndex;local pixel=p.pixels[index]
         if not pixel then H.previewIndex=nil;return end
-        new("Part",{Name="PhotoPreviewPixel",Size=Vector3.new(H.photo.cell,H.photo.cell,math.min(0.5,H.photo.cell)),CFrame=H.photoCF(index),Color=Color3.fromRGB(pixel[3],pixel[4],pixel[5]),Material=Enum.Material.SmoothPlastic,Anchored=true,CanCollide=false,CanTouch=false,CanQuery=false,Transparency=0.15},H.preview)
+        local bx,by=math.floor(pixel[1]/stride),math.floor(pixel[2]/stride);local key=bx..":"..by
+        if not H.previewSeen[key]and H.previewCount<4096 then
+            H.previewSeen[key]=true;H.previewCount=H.previewCount+1
+            local x,y=bx*stride,by*stride;local w,h=math.min(stride,p.width-x),math.min(stride,p.height-y)
+            local cx,cy=x+(w-1)/2,y+(h-1)/2
+            local cf=H.anchor*CFrame.new((cx-(p.width-1)/2)*p.cell,(p.height-1-cy)*p.cell,0)
+            new("Part",{Name="PhotoPreviewPixel",Size=Vector3.new(p.cell*w,p.cell*h,math.min(0.5,p.cell)),CFrame=cf,Color=Color3.fromRGB(pixel[3],pixel[4],pixel[5]),Material=Enum.Material.SmoothPlastic,Anchored=true,CanCollide=false,CanTouch=false,CanQuery=false,Transparency=0.15},H.preview)
+        end
         H.previewIndex=index+1
     end
+end
+function H.setPhotoSpeed(value)
+    assert(finite(value)and value>=1 and value<=10,"Скорость фото: ×1–×10")
+    H.photoSpeed=value;S.photoBuildSpeed=value
+    if N.job and N.job.kind=="photo"then N.job.speed=value;N.job.interval=0.5/value end
+    if A.widgets.photoBuildSpeed then A.widgets.photoBuildSpeed()end
+    A.status(string.format("Скорость фото ×%.1f: задержки уменьшены; результат зависит от ответа сервера",value))
+end
+function H.importPhotoClipboard()
+    assert(type(getclipboard)=="function","Нет getclipboard. Используй «Скопировать Lua импорта» в HTML-импортере")
+    return H.importPhoto(getclipboard())
+end
+function H.importPhotoFile(name)
+    assert(type(name)=="string"and #name>=1 and #name<=40 and name:match("^[A-Za-z0-9_-]+$"),"Имя схемы: латиница, цифры, _ или -")
+    assert(type(readfile)=="function","Исполнитель не предоставляет readfile")
+    return H.importPhoto(readfile(name..".json"))
 end
 function H.buildTools()
     local build,paint,scale=H.tool("BuildingTool"),H.tool("PaintingTool"),H.tool("ScalingTool")
@@ -1098,7 +1123,7 @@ function H.startPhoto()
     local blocks=workspace:FindFirstChild("Blocks");local folder=blocks and blocks:FindFirstChild(me.Name);assert(folder,"Workspace/Blocks/твой ник не загружен")
     local data=me:FindFirstChild("Data");local inventory=data and data:FindFirstChild(H.photo.material)
     assert(inventory and type(inventory.Value)=="number"and inventory.Value>=#H.photo.pixels,"Недостаточно блоков "..H.photo.material.." в Player.Data")
-    local run=N.prepare("photo");run.tools=tools;run.zone=zone;run.folder=folder;run.inventory=inventory;run.seen={};run.phase="place";run.phaseTime=0;run.placed=0;run.colored=0;run.sendClock=0
+    local run=N.prepare("photo");run.tools=tools;run.zone=zone;run.folder=folder;run.inventory=inventory;run.seen={};run.phase="place";run.phaseTime=0;run.placed=0;run.colored=0;run.sendClock=0;run.speed=H.photoSpeed;run.interval=0.5/H.photoSpeed
     for _,model in ipairs(folder:GetChildren())do run.seen[model]=true end
     H.clearPreview();A.status("Постройка фото: реальные вызовы инструментов, с проверкой появления, размера и цвета")
 end
@@ -1107,12 +1132,12 @@ function H.invoke(run,tool,remote,args,nextPhase)
     local h=humOf(me);assert(h,"Персонаж не готов");h:EquipTool(tool)
     run.awaiting=true;run.phaseTime=0;run.nextPhase=nextPhase
     run.task=task.spawn(function()
-        task.wait(0.15)
+        task.wait(0.15/(run.speed or 1))
         if not A.alive or N.job~=run then return end
         local ok,result=pcall(function()return remote:InvokeServer(table.unpack(args))end)
         if not A.alive or N.job~=run then return end
         run.awaiting=false;run.task=nil
-        if not ok then N.stop("Инструмент отклонил запрос: "..tostring(result):sub(1,100));return end
+        if not ok or result==false then N.stop("Инструмент отклонил запрос: "..tostring(result):sub(1,100));return end
         run.phase=nextPhase;run.phaseTime=0
     end)
 end
@@ -1125,7 +1150,7 @@ function H.photoStep(dt,run)
     assert(run.zone.Parent and run.folder.Parent,"Зона или папка блоков выгружена")
     local cf=H.photoCF(run.index);local color=Color3.fromRGB(pixel[3],pixel[4],pixel[5]);local size=Vector3.new(p.cell,p.cell,math.min(0.5,p.cell))
     if run.phase=="place"then
-        if run.sendClock<0.5 then return end;run.sendClock=0
+        if run.sendClock<(run.interval or 0.5)then return end;run.sendClock=0
         assert(run.inventory.Value>0,"Блоки закончились")
         H.invoke(run,run.tools.build,run.tools.buildRF,{p.material,run.inventory.Value,run.zone,run.zone.CFrame:ToObjectSpace(cf),true,cf,false},"identify")
     elseif run.phase=="identify"then
@@ -1133,13 +1158,13 @@ function H.photoStep(dt,run)
             if part and part:IsA("BasePart")and (part.Position-cf.Position).Magnitude<0.6 then run.model=model;run.part=part;run.seen[model]=true;run.placed=run.placed+1;run.phase="scale";run.phaseTime=0;break end
         end end
     elseif run.phase=="scale"then
-        if run.sendClock<0.5 then return end;run.sendClock=0
+        if run.sendClock<(run.interval or 0.5)then return end;run.sendClock=0
         H.invoke(run,run.tools.scale,run.tools.scaleRF,{run.model,size,cf},"verifyScale")
     elseif run.phase=="verifyScale"then
         assert(run.part and run.part.Parent,"Размещённый блок удалён")
         if (run.part.Size-size).Magnitude<0.15 then run.phase="paint";run.phaseTime=0 end
     elseif run.phase=="paint"then
-        if run.sendClock<0.5 then return end;run.sendClock=0
+        if run.sendClock<(run.interval or 0.5)then return end;run.sendClock=0
         H.invoke(run,run.tools.paint,run.tools.paintRF,{{{run.model,color}}},"verifyPaint")
     elseif run.phase=="verifyPaint"then
         assert(run.part and run.part.Parent,"Размещённый блок удалён")
@@ -1646,6 +1671,7 @@ function A.Set(key,value)
     elseif ranges[key]then assert(finite(value),"Нужно конечное число");value=math.clamp(value,ranges[key][1],ranges[key][2])end
     if (key=="spectate"or key=="follow"or key=="orbit")and value then assert(A.selected and A.selected~=me,"Выбери другого игрока")end
     S[key]=value
+    if key=="photoBuildSpeed"then H.setPhotoSpeed(value)end
     if key=="silent"then A.setSilent(value)end
     if key=="autoRotateOff"and not value then A.release(humOf(me),"AutoRotate")end
     if value and (key=="neonBody"or key=="glassBody")then S.neonBody=key=="neonBody";S.glassBody=key=="glassBody"end
@@ -1942,7 +1968,11 @@ helperToggle("vd","repairHelper","District · ремонт ближайшего 
 helperToggle("vd","skillHelper","District · запрос успешного skillcheck при ремонте")
 action(N.panels.vd,"District · пройти обнаруженные генераторы",function()N.select("vd");H.startDistrict()end,"Проверяет RepairProgress; 10 секунд без серверного прогресса останавливают цикл")
 action(N.panels.boat,"Boat · помощник прохождения · повторять",function()N.select("boat");N.loops=0;N.startBoat()end,"Проходы до сундука с ожиданием настоящего возрождения. Серверная победа/награда не гарантируется.")
-local photoNote=text(N.panels.boat,"Импорт фото: открой NEBULA-Photo-Importer.html, выбери картинку, скопируй схему и вставь ниже. Для реальной постройки нужны свои блоки и BuildingTool / PaintingTool / ScalingTool.",nil,UDim2.new(1,0,0,70),nil,Color3.fromRGB(155,155,155));photoNote.TextWrapped=true;A.place(N.panels.boat,photoNote)
+local photoNote=text(N.panels.boat,"Импорт фото до 200×200: открой NEBULA-Photo-Importer.html. Большую схему переноси через Lua импорта, буфер или JSON-файл, минуя текстовое поле. Для реальной постройки нужны свои блоки и BuildingTool / PaintingTool / ScalingTool.",nil,UDim2.new(1,0,0,70),nil,Color3.fromRGB(155,155,155));photoNote.TextWrapped=true;A.place(N.panels.boat,photoNote)
+slider(N.panels.boat,"photoBuildSpeed","Скорость постройки фото · ×1–×10",1)
+action(N.panels.boat,"Фото · импортировать из буфера без текстового поля",H.importPhotoClipboard)
+local photoFile=input(N.panels.boat,"NativePhotoFile","Имя JSON в рабочей папке исполнителя, без .json");photoFile.Text="nebula-photo"
+action(N.panels.boat,"Фото · импортировать JSON из файла",function()H.importPhotoFile(photoFile.Text)end)
 local photoInput=input(N.panels.boat,"NativePhotoJSON","Вставь JSON-схему nebula-photo-1 из импортера");photoInput.MultiLine=true;photoInput.TextYAlignment=Enum.TextYAlignment.Top;photoInput.Size=UDim2.new(1,0,0,100)
 action(N.panels.boat,"Фото · импортировать схему",function()N.select("boat");H.importPhoto(photoInput.Text)end)
 action(N.panels.boat,"Фото · указать точку перед собой",H.setAnchor)
@@ -2450,7 +2480,7 @@ on(U.InputBegan,function(i,processed)
     if focus then return end
     if A.waitingKey and i.UserInputType==Enum.UserInputType.Keyboard then
         if i.KeyCode==Enum.KeyCode.Escape then A.waitingKey=false;A.status("Смена бинда отменена");return end
-        if i.KeyCode~=Enum.KeyCode.Unknown then S.key=i.KeyCode;A.waitingKey=false;rebind.Text="Бинд меню: "..S.key.Name.." — изменить";A.keyHint.Text="1.9  /  "..S.key.Name;A.status("Новый бинд: "..S.key.Name)end;return
+        if i.KeyCode~=Enum.KeyCode.Unknown then S.key=i.KeyCode;A.waitingKey=false;rebind.Text="Бинд меню: "..S.key.Name.." — изменить";A.keyHint.Text="1.10  /  "..S.key.Name;A.status("Новый бинд: "..S.key.Name)end;return
     end
     if i.UserInputType==Enum.UserInputType.Keyboard then
         if S.silent and i.KeyCode==S.key then A.setSilent(false);A.show(true)
