@@ -1,0 +1,32 @@
+{
+  "boat": {
+    "repo": "scarabhub/buildaboatAutoFarm",
+    "commit": "aaad36cacf929f28cebf3cd018557e9fa2afdcea",
+    "path": "main.lua",
+    "url": "https://raw.githubusercontent.com/scarabhub/buildaboatAutoFarm/aaad36cacf929f28cebf3cd018557e9fa2afdcea/main.lua",
+    "bytes": 4355,
+    "sha256": "e0d94e98f5cb73e6ae304578a84d6f22074a419af484bd2563e84b60aab924c2"
+  },
+  "mm2": {
+    "repo": "Maanaaaa/ManaV2ForRoblox",
+    "commit": "dc9b2f8f1c019292d0de49f136a3cd822aa220d2",
+    "path": "MainScript.lua",
+    "url": "https://raw.githubusercontent.com/Maanaaaa/ManaV2ForRoblox/dc9b2f8f1c019292d0de49f136a3cd822aa220d2/MainScript.lua",
+    "bytes": 19560,
+    "sha256": "3beee9de0ee55bc77c41ca47a3bafd9e67690f9a5a104e8fa1586c536c24a770"
+  },
+  "vd": {
+    "repo": "Notties/roblox-script",
+    "commit": "b85f42f4edb10ea457c1e83025c4722c38df4d1d",
+    "path": "violence-district/GUI/gui.lua",
+    "url": "https://raw.githubusercontent.com/Notties/roblox-script/b85f42f4edb10ea457c1e83025c4722c38df4d1d/violence-district/GUI/gui.lua",
+    "bytes": 42100,
+    "sha256": "7d2f75d327bfb6a6d90c66473284ab23f554a0b97a078967ab95d71bc05a5279"
+  },
+  "review": {
+    "method": "Readable source inspection, endpoint/capability scan and Luau compilation; not a security guarantee",
+    "execution": "No third-party scripts executed. Solara/current-game compatibility unverified.",
+    "dependencies": "Only entry point pinned. Mana downloads additional author modules from main and may execute its local cached modules.",
+    "cleanup": "External scripts have independent lifecycle. NEBULA KILL does not guarantee their termination."
+  }
+}

@@ -1,0 +1,29 @@
+{
+  "version": "6.6",
+  "own_modules": [
+    "Boat",
+    "MM2",
+    "District",
+    "Spray Paint",
+    "DOORS",
+    "Tower of Hell"
+  ],
+  "own_http_dependencies": "Spray uses a local HTTP image decoder; no external Lua loaders",
+  "checks": "Luau compile and model fixtures; see work/verify_native_modules.py",
+  "runtime": "Roblox/Solara NOT RUN; replication/rewards/collection/build protocol unverified",
+  "helpers": "Mock RemoteEvents only: range/rate/repair progress/timeout/cancel",
+  "new_places": "Own DOORS and Tower of Hell: model only; live game behavior NOT RUN",
+  "spray_editor": "23 URLs checked; transformations/history/project/resume model tests; live drawing NOT RUN",
+  "mm2_aim": "Model gates/FOV/LOS/lead/smoothing/menu/input/death/KILL only; live aiming NOT RUN",
+  "spray": "Live packaged decoder tested with public PNG; Lua mock rendering/protocol tests only; no live game verification",
+  "photo": "Offline JS tests and Lua mocked place/scale/paint verification; live building NOT RUN",
+  "files": {
+    "NEBULA-Boat-1.4.lua": "1454e00d66ba176ed64b3ab7d3e9bc934c43edf3197128d0358419c4163ef9d9",
+    "NEBULA-MM2-1.4.lua": "9940b8d6a33c72e52f61e888fe36534661c15d56d64af17127fa8f09bca871a4",
+    "NEBULA-District-1.4.lua": "bc32eb90f9bec3365f7d3dbdecc779eeb568831e85910af02a162678fdd65eb0",
+    "NEBULA-SprayPaint-1.1.lua": "855728e704b7fbe90c299800d7f3e39f32bf7080a63a385595cfbfe8bce59800",
+    "NEBULA-DOORS-1.0.lua": "c024b48e8e216907511e3af354115653de1788151c378c3c11e1dadc3ec3cba9",
+    "NEBULA-TowerOfHell-1.0.lua": "dd364f8d99b8f224895819ab80c70f6fa598c0035fd18acaa49063b292464ea7",
+    "NEBULA-Visuals-6.6.lua": "d19a072f5c454a6593df10c78a4819bbbef476ed64bae3e1bd141c343caaed86"
+  }
+}
