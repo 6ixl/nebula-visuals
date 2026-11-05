@@ -1,31 +1,25 @@
 {
-  "version": "6.7",
-  "control": "1.10",
-  "boat_photo": {
+  "version": "6.8",
+  "control": "1.11",
+  "garage": {
+    "models": 10,
+    "parts": [
+      230,
+      291
+    ],
+    "wheels": 4,
+    "springs": 4,
+    "links": 16,
+    "build": "experimental sequential tool adapter",
+    "verification": "mocked server, native Luau compile, offline geometry render",
+    "runtime": "BABFT/Solara build, suspension and driving NOT TESTED"
+  },
+  "previous_photo": {
     "max_side": 200,
     "max_pixels": 40000,
-    "max_json_bytes": 4194304,
-    "preview_max_parts": 4096,
-    "speed_multiplier": [
+    "speed": [
       1,
       10
-    ],
-    "rpc_interval_seconds": [
-      0.5,
-      0.05
     ]
-  },
-  "checks": "JS image export and Lua/DOM models; native Luau compile",
-  "runtime": "Roblox/Solara NOT RUN; x10 is a local delay multiplier, not measured server throughput",
-  "files": {
-    "NEBULA-Visuals-6.7.lua": "58fca64f0b6bdef625842d9822eaf9308dabcc8f0cd69a2e8828ba6efb5c21ee",
-    "NEBULA-Control-1.10.lua": "cf5f4939054182e8de355955183724fea7a20fad0490a6e8c70d05081dcfa438",
-    "NEBULA-Photo-Importer.html": "ce8fc5065c9415666e4418f78ba0c63b3245719bd02cb50a00127e4e5f1fe6ba",
-    "NEBULA-Boat-1.5.lua": "8bf3c7bd73a0ab9bc1e37036a424041ac45c1b7408e32938e4999914085345c9",
-    "NEBULA-MM2-1.5.lua": "2fe552b28bf2be6dd3c76acb8cdb5515db978197b76ada5700bf3ea3bb07947d",
-    "NEBULA-District-1.5.lua": "67224b96a7cd83c9f1e978ba105e8c6bb362a4a50792dd901e6dc2377903ca11",
-    "NEBULA-SprayPaint-1.2.lua": "26da7849c770ed7757e9d0464e0a5f8b5d0c703e134fc10b6b440431614e0074",
-    "NEBULA-DOORS-1.1.lua": "005f857540c5dcb9c01e89457185849d3ca0774dd8a86443e9546f969464a984",
-    "NEBULA-TowerOfHell-1.1.lua": "23e5491fa3b9e8b656fe912a10b6a3f69fa7bf549cb7405ff92adffaa35b2544"
   }
 }
