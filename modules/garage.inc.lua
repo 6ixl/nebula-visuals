@@ -5,6 +5,8 @@ N.Cars=C
 -- Individually authored station profiles, dimensions in mm; no downloaded 3D assets.
 -- Individually authored station profiles, dimensions in mm; no downloaded 3D assets.
 -- Individually authored station profiles, dimensions in mm; no downloaded 3D assets.
+-- Individually authored station profiles, dimensions in mm; no downloaded 3D assets.
+-- Individually authored station profiles, dimensions in mm; no downloaded 3D assets.
 C.catalog={
  {name="720S · Papaya",inspired="McLaren 720S",color={246,103,24},mm={4543,1930,1196,2670},roofTone="black",shape="720",wing="active"},
  {name="P1 · Volcano",inspired="McLaren P1",color={241,192,29},mm={4588,1946,1188,2670},roofTone="black",shape="p1",wing="p1"},
@@ -17,6 +19,10 @@ C.catalog={
  {name="Jesko Attack · Pearl",inspired="Koenigsegg Jesko Attack",color={222,225,218},mm={4626,2030,1210,2700},roofTone="body",shape="jesko",wing="jesko"},
  {name="GT-R R35 · Gunmetal",inspired="Nissan GT-R R35 (2017)",color={95,102,112},mm={4710,1895,1370,2780},roofTone="body",shape="gtr",wing="gtr"},
 }
+C.livery=C.livery or 1;C.accent=C.accent or 1
+C.liveries={"Акценты модели","Трековые полосы","Контрастный верх"}
+C.accentPaints={{name="По модели"},{name="Красный",rgb={227,40,44}},{name="Лайм",rgb={167,222,43}},{name="Белый",rgb={224,230,232}},{name="Голубой",rgb={41,164,222}},{name="Золото",rgb={221,171,50}}}
+C.modelAccents={{238,83,24},{225,47,40},{38,150,205},{229,201,93},{235,193,29},{141,222,40},{205,36,43},{171,197,214},{150,212,38},{206,39,48}}
 C.paints={{name="Заводской"},{name="Чёрный",rgb={22,23,27}},{name="Жемчуг",rgb={225,225,218}},{name="Фиолетовый",rgb={94,45,156}},{name="Серебро",rgb={143,154,163}}}
 C.suspensions={{name="Мягкая",stiffness=12000,damping=700},{name="Спорт",stiffness=24000,damping=1200},{name="Трек",stiffness=40000,damping=1800}}
 -- t, half-width / max half-width, centre deck / total height, outer shoulder / total height.
@@ -45,15 +51,17 @@ C.canopies={
  {{.27,.66,.43},{.34,.60,.77},{.41,.51,.98},{.48,.49,1},{.55,.49,.97},{.62,.46,.86},{.69,.36,.64},{.76,.24,.48}},
  {{.285,.76,.52},{.35,.69,.77},{.42,.60,.98},{.5,.59,1},{.58,.58,.98},{.65,.56,.87},{.73,.49,.65},{.81,.36,.52}},
 }
-function C.plan(which,paint)
+function C.plan(which,paint,livery,accent)
  local selected=which or C.selected;local d=assert(C.catalog[selected],"Нет модели")
  local l,w,h,wb=d.mm[1]/220,d.mm[2]/440,d.mm[3]/220,d.mm[4]/220
- local p={name=d.name,inspired=d.inspired,parts={},bill={},length=l,width=w*2,height=h,wheelbase=wb,mm=d.mm,revision=2}
- local colors={body=(C.paints[paint or C.paint]or C.paints[1]).rgb or d.color,black={15,17,20},glass={26,36,44},metal={125,130,136},white={231,241,250},red={240,25,38},accent={205,42,39},darkBody={17,34,54},amber={245,161,34}}
+ local style=livery or C.livery;assert(C.liveries[style],"Нет схемы окраски")
+ local accentRGB=(C.accentPaints[accent or C.accent]or C.accentPaints[1]).rgb or C.modelAccents[selected]
+ local p={name=d.name,inspired=d.inspired,parts={},bill={},length=l,width=w*2,height=h,wheelbase=wb,mm=d.mm,revision=3,livery=C.liveries[style]}
+ local colors={body=(C.paints[paint or C.paint]or C.paints[1]).rgb or d.color,black={15,17,20},glass={26,36,44},metal={125,130,136},white={231,241,250},red={240,25,38},accent=accentRGB,darkBody={17,34,54},amber={245,161,34},display={40,135,164}}
  local ids={}
  local function add(id,kind,pos,size,tone,group,rot,second,basis)
   assert(not ids[id],"Duplicate car part: "..id);ids[id]=true
-  local q={id=id,kind=kind,pos=pos,size=size,color=colors[tone or "body"],group=group or "body",rot=rot or {0,0,0},second=second,basis=basis}
+  local q={id=id,kind=kind,pos=pos,size=size,color=colors[tone or "body"],tone=tone or "body",group=group or "body",rot=rot or {0,0,0},second=second,basis=basis}
   if q.size then for i=1,3 do q.size[i]=math.max(.1,q.size[i])end end
   p.parts[#p.parts+1]=q;p.bill[kind]=(p.bill[kind]or 0)+1;return q
  end
@@ -106,17 +114,31 @@ function C.plan(which,paint)
  local front,rear=-wb/2,wb/2;local wheelY=1.58;local archR=1.74
  -- A connected ladder-frame. Skin is genuine scaled blocks, not local-only meshes.
  box("spine",0,1.3,0,2.4,.5,l*.84,"metal",nil,nil,nil,"MetalBlock")
- for i,z in ipairs({front,0,rear})do box("crossmember"..i,0,1.35,z,w*1.74,.4,.5,"metal",nil,nil,nil,"MetalBlock")end
+ for i,z in ipairs({front,0,rear})do box("crossmember"..i,0,1.35,z,math.min(w*1.74,(w-1.2)*2),.4,.5,"metal",nil,nil,nil,"MetalBlock")end
  for _,s in ipairs({-1,1})do
   box("rail"..s,s*w*.73,1.25,0,.45,.65,l*.82,"metal",nil,nil,nil,"MetalBlock")
-  box("sill"..s,s*w*.91,.8,0,.45,.5,l*.67,"black")
+  box("sill"..s,s*w*.91,.8,0,.45,.5,wb-3.8,"black")
+  for k,z in ipairs({-wb*.22,0,wb*.22})do beam("outrigger"..s..":"..k,V(s*w*.73,1.1,z),V(s*w*.91,.9,z),.28,"metal",.28,"MetalBlock")end
+  for k,z in ipairs({front,rear})do box("upperMount"..s..":"..k,s*w*.73,1.95,z,.35,1.4,1.6,"metal",nil,nil,nil,"MetalBlock")end
  end
+ for k,z in ipairs({front,0,rear})do for _,s in ipairs({-1,1})do local top=body(z/l+.5,s*.4);beam("skinSupport"..s..":"..k,V(top[1],1.35,z),V(top[1],top[2]-.07,z),.25,"metal",.25,"MetalBlock")end end
  -- Curved double-curvature deck: authored shoulder and centre heights vary separately.
- local long,across=48,8
+ local long,across=64,10
+ local function skinTone(t,u,tone)
+  local x=math.abs(u)
+  if style==2 and x>.06 and x<.22 then return "accent"end
+  if style==2 and x>=.22 and x<.34 then return "white"end
+  if style==3 and t>.62 and x<.72 then return "black"end
+  if (d.shape=="senna"or d.shape=="911")and t>.10 and t<.30 and x<.55 then return "black"end
+  if d.shape=="jesko"and x<.13 and(t<.32 or t>.72)then return "black"end
+  if d.shape=="jesko"and x>.13 and x<.34 and(t<.32 or t>.72)then return "accent"end
+  if d.shape=="chiron"and t>.64 then return "darkBody"end
+  return tone
+ end
  for i=1,long do for j=1,across do
   local a,b=(i-1)/long,i/long;local u,v=-1+2*(j-1)/across,-1+2*j/across
   local tone=d.shape=="chiron"and a>.64 and "darkBody"or "body"
-  panel("skin:deck:"..i..":"..j,body(a,u),body(a,v),body(b,v),body(b,u),tone)
+  panel("skin:deck:"..i..":"..j,body(a,u),body(a,v),body(b,v),body(b,u),skinTone((a+b)*.5,(u+v)*.5,tone))
  end end
  -- Lower flanks are clipped to circular wheel apertures, rather than covered by slabs.
  local function lowY(z)
@@ -146,11 +168,13 @@ function C.plan(which,paint)
   return V(w*row[2]*u,base+(h*row[3]-base)*rounded,l*(t-.5))
  end
  local roofStart,roofEnd=start+(finish-start)*.31,start+(finish-start)*.68
- for i=1,28 do for j=1,10 do
-  local ta=start+(finish-start)*(i-1)/28;local tb=start+(finish-start)*i/28;local u,v=-1+2*(j-1)/10,-1+2*j/10
+ for i=1,36 do for j=1,12 do
+  local ta=start+(finish-start)*(i-1)/36;local tb=start+(finish-start)*i/36;local u,v=-1+2*(j-1)/12,-1+2*j/12
   local centre=(u+v)*.5;local tm=(ta+tb)*.5;local isRoof=tm>roofStart and tm<roofEnd and math.abs(centre)<.61
   local isPillar=math.abs(centre)>.8 and (math.abs(tm-roofStart)<.012 or math.abs(tm-roofEnd)<.012)
-  local tone=isRoof and d.roofTone or(isPillar and "body"or "glass")
+  local roofTone=(style==3 or d.shape=="gtr")and "black"or d.roofTone
+  local tone=isRoof and roofTone or(isPillar and "body"or "glass")
+  if isRoof and style==2 and math.abs(centre)>.06 and math.abs(centre)<.22 then tone="accent"end
   panel("canopy:"..i..":"..j,canopyPoint(ta,u),canopyPoint(ta,v),canopyPoint(tb,v),canopyPoint(tb,u),tone,tone=="glass"and "GlassBlock"or "PlasticBlock")
  end end
  -- Seals and roof rails follow the curved canopy rather than a generic rectangular window.
@@ -188,6 +212,18 @@ function C.plan(which,paint)
  local function tailRing(id,x,y,r)
   box(id.."core",x,y,tailZ,.52,.52,.12,"black");ring(id,V(x,y,tailZ+.09),r,r,"front","red",.105,24)
  end
+ -- Fine trim follows exact surface coordinates; painting is per part, not whole-car tint.
+ for _,s in ipairs({-1,1})do
+  local shut,skirt={},{ }
+  for j=0,18 do local t=.34+j*.29/18;local edge=body(t,s);shut[#shut+1]=V(edge[1]+s*.035,edge[2]-.35,edge[3]);skirt[#skirt+1]=V(edge[1]*.98,1.04,edge[3])end
+  curve("doorShut"..s,shut,.1,"black");curve("accentSill"..s,skirt,.12,"accent",.13)
+  for j=1,7 do local t=.785+j*.012;topCurve("engineLouvre"..j,s,{{t,.18},{t,.48}},.1,"black",.13)end
+  local tip=body(.018,s*.75);beam("splitterAccent"..s,V(s*w*.15,.69,tip[3]-.23),V(tip[1],.69,tip[3]-.23),.11,"accent")
+  box("seatInsert"..s,s*1.05,2.65,.94,.72,1.3,.13,"accent",-12)
+ end
+ ring("steeringRim",V(-1.03,2.75,l*(start-.5)+1.05),.39,.39,"front","black",.11,20)
+ for _,s in ipairs({-1,1})do beam("steeringSpoke"..s,V(-1.03,2.75,l*(start-.5)+1.05),V(-1.03+s*.34,2.85,l*(start-.5)+1.05),.11,"metal")end
+ box("instruments",-1.03,2.86,l*(start-.5)+.82,1.05,.38,.12,"display")
  local function sideScoop(id,side,z,y,rx,ry,shape)
   local x=side*w*.982
   local points={}
@@ -331,9 +367,9 @@ function C.plan(which,paint)
  -- Wheels are game mechanisms. No fake rotating locally welded visual wheels.
  local links={}
  for _,s in ipairs({-1,1})do for axle,z in ipairs({front,rear})do
-  local id=s..":"..axle;local carrier=s*(w-.95)
+  local id=s..":"..axle;local carrier=s*(w-.45)
   add("carrier"..id,"MetalBlock",V(carrier,1.5,z),V(.65,1.45,1.65),"metal","carrier")
-  local wheel=add("wheel"..id,axle==1 and "FrontWheel"or "BackWheel",V(s*(w-.1),wheelY,z),nil,"black","wheel",V(0,s==1 and 180 or 0,0));wheel.previewSize={1.0,3.16,3.16}
+  local wheel=add("wheel"..id,axle==1 and "FrontWheel"or "BackWheel",V(s*(w-.1),wheelY,z),nil,"black","wheel",V(0,s==1 and 180 or 0,0));wheel.previewSize={1.0,3.16,3.16};wheel.skipPaint=true
   links[#links+1]={"spring"..id,"Spring",V(s*w*.73,2.55,z),V(carrier,1.6,z),"spring"}
   for _,yy in ipairs({1.05,2.0})do for _,offset in ipairs({-.55,.55})do links[#links+1]={"arm"..id..":"..yy..":"..offset,"Bar",V(s*w*.73,yy,z+offset),V(carrier,yy,z+offset),"link"}end end
  end end
@@ -347,6 +383,21 @@ function C.cf(v,base,second)
  return base*CFrame.new(pos[1],pos[2],pos[3])*CFrame.Angles(math.rad(r[1]),math.rad(r[2]),math.rad(r[3]))
 end
 function C.clearPreview()destroy(C.preview);C.preview=nil end
+function C.poseClose(actual,target)
+ local a,b={actual:GetComponents()},{target:GetComponents()}
+ for i=1,12 do if not finite(a[i])or math.abs(a[i]-b[i])>(i<=3 and .005 or .001)then return false end end
+ return true
+end
+function C.acceptScaleReply(run,q,size,pose)
+ if size==nil or size==true then return end -- Some tool versions replicate the result directly.
+ assert(typeof(size)=="Vector3"and typeof(pose)=="CFrame","ScalingTool вернул неподдерживаемые данные")
+ local wanted=Vector3.new(table.unpack(q.size))
+ assert((size-wanted).Magnitude<=.005,"Рулетка округлила размер панели")
+ assert(C.poseClose(pose,C.cf(q,run.base)),"Рулетка изменила точное положение/угол")
+ assert(run.part and run.part.Parent,"Деталь исчезла")
+ -- The game's own ScalingTool applies this server-authorized pair on the client.
+ run.part.Size=size;run.part.CFrame=pose;run.scaleReplyAccepted=true
+end
 function C.setAnchor()
  assert(not N.job,"Останови текущую задачу");local r=rootOf(me);assert(r,"Персонаж не готов")
  local _,yaw=r.CFrame:ToOrientation();C.anchor=CFrame.new(r.Position+Vector3.new(0,1,0))*CFrame.Angles(0,yaw,0)*CFrame.new(0,0,-20)
@@ -384,7 +435,9 @@ function C.start()
  assert(not N.job,"Сначала останови текущую задачу");local plan,tools,zone,folder,data=C.check();if not C.anchor then C.setAnchor()end
  local run=N.prepare("car");run.plan=plan;run.tools=tools;run.zone=zone;run.folder=folder;run.data=data;run.base=C.anchor;run.speed=H.photoSpeed;run.interval=0.5/run.speed
  run.seen={};for _,m in ipairs(folder:GetChildren())do run.seen[m]=true end
- run.models={};run.tune=C.suspensions[C.suspension];run.phase="place";run.phaseTime=0;run.sendClock=0;C.last=nil;C.clearPreview()
+ local preset=C.suspensions[C.suspension];run.tune={stiffness=preset.stiffness,damping=preset.damping}
+ for _,q in ipairs(plan.parts)do if q.group=="spring"then local sum=0;for j=1,3 do sum=sum+(q.pos[j]-q.second[j])^2 end;run.tune.freeLength=math.sqrt(sum);break end end
+ run.models={};run.phase="place";run.phaseTime=0;run.sendClock=0;C.last=nil;C.clearPreview()
  A.status("Гараж: экспериментальная сборка "..plan.name.." · "..#plan.parts.." деталей. Детали останутся закреплёнными.")
 end
 function C.bindingGroups(models)
@@ -403,7 +456,7 @@ function C.bindingGroups(models)
 end
 function C.audit(record)
  assert(record and record.models and #record.models==#record.plan.parts,"Нет завершённой сборки")
- local allowed,parents,labels={},{},{};local wheels,springs,links=0,0,0;local seat;local spine
+ local allowed,parents,labels,carriers={},{},{},{};local wheels,springs,links=0,0,0;local seat;local spine
  local function root(v)if not parents[v]then parents[v]=v end;if parents[v]~=v then parents[v]=root(parents[v])end;return parents[v]end
  local function union(a,b)if a and b and allowed[a]and allowed[b]then parents[root(a)]=root(b)end end
  for _,entry in ipairs(record.models)do
@@ -411,6 +464,7 @@ function C.audit(record)
   for _,part in ipairs(entry.model:GetDescendants())do if part:IsA("BasePart")then allowed[part]=entry.spec.group end end
   if entry.spec.group=="seat"then seat=entry.model end
   if entry.spec.id=="spine"then spine=entry.model:FindFirstChild("PPart")end
+  if entry.spec.group=="carrier"then carriers[entry.spec.id:sub(8)]=entry.model:FindFirstChild("PPart")end
  end
  assert(seat and seat:FindFirstChildWhichIsA("VehicleSeat",true),"Водительское сиденье не подтверждено")
  for _,entry in ipairs(record.models)do for _,joint in ipairs(entry.model:GetDescendants())do
@@ -423,24 +477,27 @@ function C.audit(record)
  for _,entry in ipairs(record.models)do
   local group=entry.spec.group
   if group=="wheel"then
+   local carrier=carriers[entry.spec.id:sub(6)];assert(carrier,"Нет носителя нужного колеса")
    local bound=false
    for _,beam in ipairs(seat:GetChildren())do if beam:IsA("Beam")and beam.Attachment1 and beam.Attachment1.Parent and beam.Attachment1.Parent:IsDescendantOf(entry.model)then bound=true end end
    assert(bound,"Связь сиденья и колеса не подтверждена: "..entry.spec.id)
    local mounted=false;local hinged=false
    for _,part in ipairs(entry.model:GetDescendants())do
-    if part:IsA("BasePart")and labels[root(part)].carrier then mounted=true end
-    if part:IsA("HingeConstraint")and part.Enabled~=false and part.Attachment0 and part.Attachment1 and allowed[part.Attachment0.Parent]and allowed[part.Attachment1.Parent]and root(part.Attachment0.Parent)~=root(part.Attachment1.Parent)then hinged=true end
+    if part:IsA("BasePart")and root(part)==root(carrier)then mounted=true end
+    if part:IsA("HingeConstraint")and part.Enabled~=false and part.ActuatorType==Enum.ActuatorType.Motor and finite(part.MotorMaxTorque)and part.MotorMaxTorque>0 and part.Attachment0 and part.Attachment1 and allowed[part.Attachment0.Parent]and allowed[part.Attachment1.Parent]and root(part.Attachment0.Parent)~=root(part.Attachment1.Parent)then hinged=true end
    end
    assert(mounted and hinged,"Крепление/шарнир колеса не подтверждены: "..entry.spec.id);wheels=wheels+1
   elseif group=="spring"or group=="link"then
+   local key=entry.spec.id:match("^spring(.+)$")or entry.spec.id:match("^arm([^:]+:[^:]+):")
+   local carrier=carriers[key];assert(carrier,"Нет носителя нужного угла подвески")
    local valid=false
    for _,constraint in ipairs(entry.model:GetDescendants())do if constraint:IsA("Constraint")and constraint.Enabled~=false and constraint.Attachment0 and constraint.Attachment1 then
     local a,b=constraint.Attachment0.Parent,constraint.Attachment1.Parent
     if a and b and a~=b and allowed[a]and allowed[b]and root(a)~=root(b)then
      local left,right=labels[root(a)],labels[root(b)]
-     if (left.body and right.carrier)or(left.carrier and right.body)then
+     if (left.body and root(b)==root(carrier))or(root(a)==root(carrier)and right.body)then
       if group=="spring"and constraint:IsA("SpringConstraint")then
-       assert(record.tune and type(constraint.Stiffness)=="number"and type(constraint.Damping)=="number"and math.abs(constraint.Stiffness-record.tune.stiffness)<0.01 and math.abs(constraint.Damping-record.tune.damping)<0.01,"Настройки пружины не подтверждены")
+       assert(record.tune and type(constraint.Stiffness)=="number"and type(constraint.Damping)=="number"and type(constraint.FreeLength)=="number"and math.abs(constraint.Stiffness-record.tune.stiffness)<0.01 and math.abs(constraint.Damping-record.tune.damping)<0.01 and math.abs(constraint.FreeLength-record.tune.freeLength)<0.01,"Настройки/длина пружины не подтверждены")
        valid=true
       elseif group=="link"and constraint:IsA("RodConstraint")then valid=true end
      end
@@ -462,7 +519,7 @@ function C.step(dt,run)
  local q=run.plan.parts[run.index]
  if not q then
   if run.phase=="bind"then
-   C.last={plan=run.plan,models=run.models,folder=run.folder,tune=run.tune}
+   C.last={plan=run.plan,models=run.models,folder=run.folder,tune=run.tune,base=run.base}
    local groups=C.bindingGroups(run.models);local seat
    for _,entry in ipairs(run.models)do if entry.spec.group=="seat"then seat=entry.model end end
    assert(seat,"Сиденье не найдено")
@@ -478,9 +535,15 @@ function C.step(dt,run)
     local spring=entry.model:FindFirstChildWhichIsA("SpringConstraint",true)
     if not spring or type(spring[property])~="number"or math.abs(spring[property]-value)>0.01 then return end
    end end
-   run.phase=stiffness and "tuneDamping"or "finish";run.phaseTime=0;return
+   run.phase=stiffness and "tuneDamping"or "tuneLength";run.phaseTime=0;return
+  elseif run.phase=="tuneLength"then
+   local springs={};for _,entry in ipairs(run.models)do if entry.spec.group=="spring"then springs[#springs+1]=entry.model end end
+   H.invoke(run,run.tools.props,run.tools.propsRF,{"Target lenght",springs,run.tune.freeLength},"verifyLength");return
+  elseif run.phase=="verifyLength"then
+   for _,entry in ipairs(run.models)do if entry.spec.group=="spring"then local spring=entry.model:FindFirstChildWhichIsA("SpringConstraint",true);if not spring or not finite(spring.FreeLength)or math.abs(spring.FreeLength-run.tune.freeLength)>.01 then return end end end
+   run.phase="finish";run.phaseTime=0;return
   elseif run.phase=="finish"then
-   C.last={plan=run.plan,models=run.models,folder=run.folder,tune=run.tune};N.stop("Кузов и механика размещены. Машина закреплена; проверь связи и ходовую перед запуском.");return
+   C.last={plan=run.plan,models=run.models,folder=run.folder,tune=run.tune,base=run.base};N.stop("Кузов и механика размещены. Машина закреплена; проверь связи и ходовую перед запуском.");return
   end
  end
  assert(q,"Неизвестная стадия сборки")
@@ -492,13 +555,15 @@ function C.step(dt,run)
  elseif run.phase=="identify"then
   for _,model in ipairs(run.folder:GetChildren())do if not run.seen[model]and model.Name==q.kind then local part=model:FindFirstChild("PPart")
    if part and part:IsA("BasePart")and (part.Position-cf.Position).Magnitude<0.6 then
-    run.seen[model]=true;run.model=model;run.part=part;run.models[#run.models+1]={model=model,spec=q};run.phase=q.size and "scale"or "paint";run.phaseTime=0;break
+    run.seen[model]=true;run.model=model;run.part=part;run.models[#run.models+1]={model=model,spec=q};run.phase=q.size and "scale"or(q.skipPaint and "advance"or "paint");run.phaseTime=0;break
    end
   end end
- elseif run.phase=="scale"then H.invoke(run,run.tools.scale,run.tools.scaleRF,{run.model,Vector3.new(table.unpack(q.size)),cf},"verifyScale")
+ elseif run.phase=="scale"then H.invoke(run,run.tools.scale,run.tools.scaleRF,{run.model,Vector3.new(table.unpack(q.size)),cf},"verifyScale",function(size,pose)C.acceptScaleReply(run,q,size,pose)end)
  elseif run.phase=="verifyScale"then
-  assert(run.part.Parent,"Деталь удалена");if (run.part.Size-Vector3.new(table.unpack(q.size))).Magnitude<0.15 then run.phase="paint";run.phaseTime=0 end
+  assert(run.part.Parent,"Деталь удалена");if (run.part.Size-Vector3.new(table.unpack(q.size))).Magnitude<=.005 and C.poseClose(run.part.CFrame,cf)then run.phase="paint";run.phaseTime=0 end
  elseif run.phase=="paint"then H.invoke(run,run.tools.paint,run.tools.paintRF,{{{run.model,color}}},"verifyPaint")
+ elseif run.phase=="advance"then
+  run.index=run.index+1;run.phase=run.index>#run.plan.parts and "bind"or "place";run.phaseTime=0
  elseif run.phase=="verifyPaint"then
   assert(run.part.Parent,"Деталь удалена");local c=run.part.Color
   if math.abs(c.R-color.R)+math.abs(c.G-color.G)+math.abs(c.B-color.B)<0.04 then
@@ -523,5 +588,45 @@ function C.release()
   if A.alive and N.job==run then run.task=nil;N.stop(ok and "Закрепление снято. Проверь езду вручную в игре."or("Запуск не подтверждён: "..tostring(err)))end
  end)
 end
-function C.cleanup()C.clearPreview();C.anchor=nil;C.last=nil;destroy(C.stage);C.stage=nil end
+function C.startAlign()
+ assert(not N.job,"Сначала останови задачу");assert(C.last and C.last.base,"Нет завершённой схемы с точкой")
+ local tool=H.tool("TrowelTool");local rf=tool and tool:FindFirstChild("OperationRF");assert(rf and rf:IsA("RemoteFunction"),"Нужен совок TrowelTool.OperationRF")
+ local models={};for _,entry in ipairs(C.last.models)do if entry.spec.group=="body"then local pp=entry.model:FindFirstChild("PPart");assert(entry.model.Parent==C.last.folder and pp and pp.Anchored,"Выравнивание возможно только для своих закреплённых панелей");models[#models+1]=entry end end
+ local run=N.prepare("carAlign");run.models=models;run.base=C.last.base;run.tool=tool;run.remote=rf;run.phase="align";run.phaseTime=0;run.speed=H.photoSpeed
+ A.status("Совок: проверка и точное выравнивание закреплённых панелей, без округления углов")
+end
+function C.stepAlign(dt,run)
+ run.phaseTime=run.phaseTime+dt;if run.phaseTime>8 then N.stop("Совок: точное перемещение не подтверждено за 8 секунд");return end
+ if run.awaiting then return end
+ local entry=run.models[run.index];if not entry then N.stop("Совок: положение всех панелей подтверждено; сварки проверь отдельно");return end
+ local pp=entry.model:FindFirstChild("PPart");assert(pp and pp.Anchored,"Деталь удалена или снята с закрепления")
+ local target=C.cf(entry.spec,run.base)
+ if C.poseClose(pp.CFrame,target)then run.index=run.index+1;run.phase="align";run.phaseTime=0;return end
+ if run.phase=="align"then H.invoke(run,run.tool,run.remote,{{entry.model},pp.CFrame,target,"Move"},"verifyAlign")end
+end
+function C.startDriveProbe()
+ assert(not N.job,"Сначала останови задачу");C.audit(C.last)
+ local seat,spine
+ for _,entry in ipairs(C.last.models)do if entry.spec.group=="seat"then seat=entry.model:FindFirstChildWhichIsA("VehicleSeat",true)end;if entry.spec.id=="spine"then spine=entry.model:FindFirstChild("PPart")end end
+ assert(spine and not spine.Anchored,"Сначала сними закрепление после аудита")
+ assert(seat and seat.Occupant==humOf(me),"Сядь в водительское сиденье своей машины")
+ C.lastDriveReport=nil;C.probe={record=C.last,seat=seat,spine=spine,character=me.Character,origin=spine.Position,yaw=math.atan2(-spine.CFrame.LookVector.X,-spine.CFrame.LookVector.Z),elapsed=0,distance=0,turn=0,spinning={},throttle=false,steer=false}
+ A.status("12 секунд: сам проедь вперёд и поверни. Проверка только измеряет, не управляет персонажем.")
+end
+function C.stepProbe(dt)
+ local p=C.probe;if not p then return end
+ if not A.alive or N.job or p.character~=me.Character or not p.spine.Parent or p.seat.Occupant~=humOf(me)then C.probe=nil;A.status("Проверка езды отменена: изменилось сиденье/персонаж/задача");return end
+ p.elapsed=p.elapsed+dt;local delta=p.spine.Position-p.origin
+ p.distance=math.max(p.distance,math.sqrt(delta.X*delta.X+delta.Z*delta.Z))
+ local yaw=math.atan2(-p.spine.CFrame.LookVector.X,-p.spine.CFrame.LookVector.Z)-p.yaw;p.turn=math.max(p.turn,math.abs(math.atan2(math.sin(yaw),math.cos(yaw))))
+ p.throttle=p.throttle or math.abs(p.seat.ThrottleFloat or p.seat.Throttle or 0)>.1;p.steer=p.steer or math.abs(p.seat.SteerFloat or p.seat.Steer or 0)>.1
+ for _,entry in ipairs(p.record.models)do if entry.spec.group=="wheel"then for _,part in ipairs(entry.model:GetDescendants())do if part:IsA("BasePart")and part.AssemblyAngularVelocity.Magnitude>1 then p.spinning[entry.spec.id]=true end end end end
+ if p.elapsed>=12 then
+  local count=0;for _ in pairs(p.spinning)do count=count+1 end
+  C.lastDriveReport={seconds=p.elapsed,horizontalStuds=p.distance,yawDegrees=math.deg(p.turn),spinningWheels=count,throttleSeen=p.throttle,steerSeen=p.steer,driveObserved=p.throttle and p.distance>2 and count>=2,steeringObserved=p.steer and p.turn>math.rad(8)}
+  local report=C.lastDriveReport;C.probe=nil
+  A.status(string.format("Замер: %.1f studs; поворот %.1f°. Движение: %s; поворот: %s. Это наблюдение, не гарантия устойчивости.",report.horizontalStuds,report.yawDegrees,report.driveObserved and "видно"or "не подтверждено",report.steeringObserved and "видно"or "не подтверждено"))
+ end
+end
+function C.cleanup()C.probe=nil;C.lastDriveReport=nil;C.clearPreview();C.anchor=nil;C.last=nil;destroy(C.stage);C.stage=nil end
 end

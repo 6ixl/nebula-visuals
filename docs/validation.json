@@ -1,39 +1,35 @@
 {
-  "version": "6.9",
-  "control": "1.12",
-  "boat_photo": {
+  "version": "6.10",
+  "control": "1.13",
+  "garage": {
+    "revision": 3,
+    "models": 10,
+    "parts": [
+      1803,
+      1752,
+      1757,
+      1827,
+      1773,
+      1721,
+      1853,
+      1822,
+      1759,
+      1850
+    ],
+    "liveries": 3,
+    "colours": "independent body and accent presets",
+    "geometry_tests": "surface matrices, physical dimensions, structural/carrier AABB clearance",
+    "mechanical_tests": "mocked scale replies, exact Move, corner ownership, powered hinge, FreeLength, release and KILL",
+    "drive_probe": "passive 12 seconds; modeled motion/yaw/falling/seat exit tests",
+    "runtime": "REAL BABFT/SOLARA CONSTRUCTION AND DRIVING NOT TESTED",
+    "exact_replica": false
+  },
+  "photo": {
     "cell": [
       0.1,
       6
     ],
     "max_side": 200,
-    "max_pixels": 40000,
-    "replica_tolerance": "max(0.002,min(0.025,cell*0.02))",
-    "tested": "live HTML JS core, Lua mocked tools incl 0.2 returned for 0.1 request"
-  },
-  "garage": {
-    "geometry_revision": 2,
-    "models": 10,
-    "parts": [
-      1132,
-      1252
-    ],
-    "counts": [
-      1202,
-      1151,
-      1156,
-      1226,
-      1176,
-      1132,
-      1252,
-      1221,
-      1158,
-      1249
-    ],
-    "exact_replica": false,
-    "reference_method": "manually authored station profiles from viewed photos",
-    "geometry_checks": "physical extents, roof, axle span, orientation matrices, distinct surfaces",
-    "render": "offline depth-tested OpenGL, not Roblox",
-    "runtime": "BABFT/Solara construction, attachment strength and driving NOT TESTED"
+    "max_pixels": 40000
   }
 }
