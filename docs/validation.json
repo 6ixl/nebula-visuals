@@ -1,25 +1,39 @@
 {
-  "version": "6.8",
-  "control": "1.11",
-  "garage": {
-    "models": 10,
-    "parts": [
-      230,
-      291
+  "version": "6.9",
+  "control": "1.12",
+  "boat_photo": {
+    "cell": [
+      0.1,
+      6
     ],
-    "wheels": 4,
-    "springs": 4,
-    "links": 16,
-    "build": "experimental sequential tool adapter",
-    "verification": "mocked server, native Luau compile, offline geometry render",
-    "runtime": "BABFT/Solara build, suspension and driving NOT TESTED"
-  },
-  "previous_photo": {
     "max_side": 200,
     "max_pixels": 40000,
-    "speed": [
-      1,
-      10
-    ]
+    "replica_tolerance": "max(0.002,min(0.025,cell*0.02))",
+    "tested": "live HTML JS core, Lua mocked tools incl 0.2 returned for 0.1 request"
+  },
+  "garage": {
+    "geometry_revision": 2,
+    "models": 10,
+    "parts": [
+      1132,
+      1252
+    ],
+    "counts": [
+      1202,
+      1151,
+      1156,
+      1226,
+      1176,
+      1132,
+      1252,
+      1221,
+      1158,
+      1249
+    ],
+    "exact_replica": false,
+    "reference_method": "manually authored station profiles from viewed photos",
+    "geometry_checks": "physical extents, roof, axle span, orientation matrices, distinct surfaces",
+    "render": "offline depth-tested OpenGL, not Roblox",
+    "runtime": "BABFT/Solara construction, attachment strength and driving NOT TESTED"
   }
 }

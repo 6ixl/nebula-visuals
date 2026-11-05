@@ -15,7 +15,7 @@
 </section><aside><h2>Параметры схемы</h2><label for="file">Изображение</label><input id="file" type="file" accept="image/png,image/jpeg,image/webp,image/gif,image/bmp">
 <label for="side">Длинная сторона <output id="sideValue">24</output> блока</label><input id="side" type="range" min="2" max="200" value="24">
 <label for="palette">Палитра</label><select id="palette"><option value="2">До 8 цветов</option><option value="3">До 27 цветов</option><option value="4" selected>До 64 цветов</option><option value="6">До 216 цветов</option><option value="256">Исходные цвета</option></select>
-<label for="cell">Размер клетки, studs</label><input id="cell" type="number" min="1" max="6" step="0.5" value="2">
+<label for="cell">Размер клетки, studs · 0.1–6</label><input id="cell" type="number" min="0.1" max="6" step="0.05" value="2"><small>Меньшая клетка уменьшает физический размер картины. Детали определяет разрешение: 200×200 при клетке 0.1 займёт 20×20 studs, при клетке 1 — 200×200. Число блоков одинаковое.</small>
 <label for="material">Материал из инвентаря</label><input id="material" value="PlasticBlock" maxlength="40" spellcheck="false">
 <label for="alpha">Пропускать прозрачность ниже</label><input id="alpha" type="range" min="1" max="255" value="32">
 <small>Схема сохраняет пропорции. Максимум — 200 × 200 клеток (до 40 000 блоков). Каждая непрозрачная клетка требует один блок; PaintingTool и ScalingTool обязательны. Начни с маленькой схемы: размещение и подтверждение идут последовательно.</small></aside></main>
@@ -27,7 +27,7 @@ function planFromRgba(data,width,height,options={}) {
   if(!data||data.length!==width*height*4) throw Error('Неверные данные изображения.');
   const levels=Number(options.levels??4),alpha=Number(options.alpha??32),cell=Number(options.cell??2),material=options.material??'PlasticBlock';
   if(!Number.isInteger(levels)||levels<2||levels>256)throw Error('Неверная палитра.');
-  if(!Number.isFinite(alpha)||alpha<0||alpha>255||!Number.isFinite(cell)||cell<1||cell>6)throw Error('Неверные параметры размера или прозрачности.');
+  if(!Number.isFinite(alpha)||alpha<0||alpha>255||!Number.isFinite(cell)||cell<0.1||cell>6)throw Error('Размер клетки: 0.1–6 studs; проверь прозрачность.');
   if(!/^[A-Za-z]+Block$/.test(material)||material.length>40)throw Error('Укажи имя материала вроде PlasticBlock.');
   const pixels=[];
   const quant=value=>Math.round(Math.round(value*(levels-1)/255)*255/(levels-1));
@@ -62,7 +62,8 @@ function update(){
   plan=NebulaPhoto.planFromRgba(ctx.getImageData(0,0,w,h).data,w,h,{levels:Number($('palette').value),cell:Number($('cell').value),alpha:Number($('alpha').value),material:$('material').value.trim()});
   const canvas=$('preview'),scale=Math.max(1,Math.floor(480/Math.max(w,h)));canvas.width=w*scale;canvas.height=h*scale;const out=canvas.getContext('2d');out.clearRect(0,0,canvas.width,canvas.height);
   for(const [x,y,r,g,b]of plan.pixels){out.fillStyle=`rgb(${r},${g},${b})`;out.fillRect(x*scale,y*scale,scale,scale)}
-  canvas.style.display='block';$('empty').hidden=true;$('dims').textContent=`${w} × ${h}`;$('count').textContent=plan.pixels.length.toLocaleString('ru');$('colors').textContent=new Set(plan.pixels.map(p=>p.slice(2).join(','))).size;$('world').textContent=`${w*plan.cell} × ${h*plan.cell}`;
+  const studs=value=>Number(value.toFixed(3)).toLocaleString('ru');
+  canvas.style.display='block';$('empty').hidden=true;$('dims').textContent=`${w} × ${h}`;$('count').textContent=plan.pixels.length.toLocaleString('ru');$('colors').textContent=new Set(plan.pixels.map(p=>p.slice(2).join(','))).size;$('world').textContent=`${studs(w*plan.cell)} × ${studs(h*plan.cell)}`;
   for(const id of ['copy','download','lua'])$(id).disabled=false;
   $('fallback').hidden=true;status(`Готово: ${plan.pixels.length} блоков ${plan.material}. Фото не покидало устройство. Для большой схемы используй «Lua импорта» или JSON-файл.`);
  }catch(error){invalidate(error.message)}

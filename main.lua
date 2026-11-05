@@ -1,4 +1,4 @@
--- NEBULA VISUALS 6.8 | client-only visuals | optional manually loaded script hub
+-- NEBULA VISUALS 6.9 | client-only visuals | optional manually loaded script hub
 -- Paste the whole file into the executor. Default menu key: RightShift.
 -- This is a lighting preset, NOT ray tracing. Engine/game restrictions still apply.
 local Players = game:GetService("Players")
@@ -83,7 +83,7 @@ local expansion={skyNodes={},skyFolder=nil,meteorClock=0,fogClock=0,
 function expansion.fogColor()
     return expansion.fogColors[state.fogStyle] or Color3.fromHSV(state.fogHue,state.fogSaturation,0.8)
 end
-local api = {Version="6.8"}
+local api = {Version="6.9"}
 env.__NEBULA_VISUALS = api
 local function connect(signal, fn, list)
     local c = signal:Connect(fn)
@@ -1272,7 +1272,7 @@ local header=new("Frame",{BackgroundTransparency=1,Size=UDim2.new(1,-240,0,55),A
 label(header,"nebula",UDim2.fromOffset(22,18),UDim2.fromOffset(150,26),Enum.Font.GothamBold,accent).TextSize=23
 label(panel,"Твой визуальный клиент",UDim2.fromOffset(220,18),UDim2.fromOffset(280,22),Enum.Font.GothamMedium,Color3.fromRGB(164,164,164)).TextSize=12
 label(panel,"Визуальные модули",UDim2.fromOffset(22,70),UDim2.fromOffset(155,20),nil,Color3.fromRGB(105,105,105)).TextSize=11
-label(panel,"Версия 6.8",UDim2.new(0,22,1,-38),UDim2.fromOffset(150,20),nil,Color3.fromRGB(110,110,110)).TextSize=11
+label(panel,"Версия 6.9",UDim2.new(0,22,1,-38),UDim2.fromOffset(150,20),nil,Color3.fromRGB(110,110,110)).TextSize=11
 local hide=button(panel,"—",UDim2.new(1,-86,0,11),UDim2.fromOffset(30,30))
 local close=button(panel,"×",UDim2.new(1,-48,0,11),UDim2.fromOffset(30,30))
 local kill=button(panel,"KILL SCRIPT",UDim2.new(1,-218,0,11),UDim2.fromOffset(122,30))
@@ -1557,7 +1557,7 @@ local hubPage=page("Хаб","Отдельные скрипты: загрузи �
 local hub={busy=false,selection="Мой Lua"}
 -- BEGIN NEBULA CONTROL EMBED
 local embeddedControlCode=[=======[
--- NEBULA CONTROL 1.11 | independent client tools | no remote loaders
+-- NEBULA CONTROL 1.12 | independent client tools | no remote loaders
 -- RightAlt: menu; F6: fly; F7: noclip; F8: ESP. All modules start disabled.
 local P=game:GetService("Players")
 local R=game:GetService("RunService")
@@ -1568,7 +1568,7 @@ local me=P.LocalPlayer
 assert(me,"NEBULA Control requires a client")
 local env=(getgenv and getgenv())or _G
 if env.__NEBULA_CONTROL and env.__NEBULA_CONTROL.Unload then pcall(env.__NEBULA_CONTROL.Unload)end
-local A={Version="1.11",alive=true,connections={},characterConnections={},playerConnections={},props={},esp={},widgets={},pages={},indexed={},commands={},aliases={},history={},waypoints={},selected=nil}
+local A={Version="1.12",alive=true,connections={},characterConnections={},playerConnections={},props={},esp={},widgets={},pages={},indexed={},commands={},aliases={},history={},waypoints={},selected=nil}
 env.__NEBULA_CONTROL=A
 local S={esp=false,names=true,health=true,distance=true,boxes=false,tracers=false,throughWalls=true,teamColors=true,teamFilter=false,visibleOnly=false,selectedOnly=false,
     espRange=1500,espSize=13,espHue=0.76,boxMode=1,espThickness=1,offscreen=false,
@@ -2602,7 +2602,7 @@ function H.importPhoto(value)
     assert(integer(plan.width,1,H.maxPhotoSide)and integer(plan.height,1,H.maxPhotoSide),"Размер: 1–200 блоков по стороне")
     assert(type(plan.pixels)=="table"and #plan.pixels>0 and #plan.pixels<=H.maxPhotoPixels,"Число блоков: 1–40000")
     local material=tostring(plan.material or "PlasticBlock");assert(material:match("^[A-Za-z]+Block$")and #material<=40,"Неверное имя материала")
-    local cell=tonumber(plan.cell or 2);assert(finite(cell)and cell>=1 and cell<=6,"Размер блока: 1–6 studs")
+    local cell=tonumber(plan.cell or 2);assert(finite(cell)and cell>=0.1 and cell<=6,"Размер блока: 0.1–6 studs")
     local clean={format="nebula-photo-1",width=plan.width,height=plan.height,cell=cell,material=material,pixels={}};local seen={}
     for i,pixel in ipairs(plan.pixels)do
         assert(type(pixel)=="table"and #pixel==5,"Неверный пиксель "..i)
@@ -2722,7 +2722,8 @@ function H.photoStep(dt,run)
         H.invoke(run,run.tools.scale,run.tools.scaleRF,{run.model,size,cf},"verifyScale")
     elseif run.phase=="verifyScale"then
         assert(run.part and run.part.Parent,"Размещённый блок удалён")
-        if (run.part.Size-size).Magnitude<0.15 then run.phase="paint";run.phaseTime=0 end
+        local tolerance=math.max(0.002,math.min(0.025,p.cell*0.02))
+        if (run.part.Size-size).Magnitude<=tolerance then run.phase="paint";run.phaseTime=0 end
     elseif run.phase=="paint"then
         if run.sendClock<(run.interval or 0.5)then return end;run.sendClock=0
         H.invoke(run,run.tools.paint,run.tools.paintRF,{{{run.model,color}}},"verifyPaint")
@@ -2770,153 +2771,359 @@ end
 
 
 
+
+
+
+
+
+
 -- BEGIN NEBULA GARAGE
 -- Original NEBULA BABFT garage. Included inside Control; no external loaders.
 do
 local C={selected=1,paint=1,suspension=2,anchor=nil,preview=nil,last=nil,turn=0}
 N.Cars=C
+-- Individually authored station profiles, dimensions in mm; no downloaded 3D assets.
+-- Individually authored station profiles, dimensions in mm; no downloaded 3D assets.
+-- Individually authored station profiles, dimensions in mm; no downloaded 3D assets.
 C.catalog={
- {name="720 · Papaya",inspired="McLaren 720S",color={255,112,24},length=19.4,width=8.4,nose=0.56,cabin=0.1,roof=4.35,tail=3.4,wing=0,lamps="sweep",intake="blade"},
- {name="P1 · Volcano",inspired="McLaren P1",color={246,170,30},length=19.8,width=8.5,nose=0.48,cabin=0.7,roof=4.5,tail=3.5,wing=1,lamps="arc",intake="scoop"},
- {name="Senna · Track",inspired="McLaren Senna",color={72,143,180},length=20.6,width=8.7,nose=0.65,cabin=0.2,roof=4.4,tail=3.65,wing=2,lamps="slit",intake="blade"},
- {name="488 · Rosso",inspired="Ferrari 488",color={207,28,42},length=19.2,width=8.3,nose=0.70,cabin=0.3,roof=4.65,tail=3.7,wing=0,lamps="sweep",intake="scoop",roundRear=true},
- {name="SF90 · Stradale",inspired="Ferrari SF90",color={240,192,32},length=20,width=8.6,nose=0.72,cabin=0.3,roof=4.5,tail=3.55,wing=1,lamps="split",intake="blade"},
- {name="Huracán · Verde",inspired="Lamborghini Huracán",color={115,204,38},length=19.3,width=8.7,nose=0.75,cabin=-0.3,roof=4.25,tail=3.45,wing=1,lamps="fork",intake="blade"},
- {name="911 · Weissach",inspired="Porsche 911 GT3 RS",color={206,211,214},length=18.9,width=8.1,nose=0.67,cabin=-0.1,roof=5.0,tail=3.65,wing=2,lamps="round",intake="louvre",roundRear=true},
- {name="Chiron · Atlantic",inspired="Bugatti Chiron",color={28,91,184},length=20.5,width=8.9,nose=0.83,cabin=0.5,roof=4.95,tail=3.85,wing=1,lamps="quad",intake="arc"},
- {name="Jesko · Attack",inspired="Koenigsegg Jesko",color={220,226,219},length=21.3,width=8.9,nose=0.58,cabin=0.4,roof=4.3,tail=3.4,wing=2,lamps="sweep",intake="scoop"},
- {name="R35 · Midnight",inspired="Nissan GT-R",color={90,83,132},length=20.3,width=8.4,nose=0.87,cabin=-0.2,roof=5.25,tail=4.0,wing=1,lamps="split",intake="louvre",roundRear=true},
+ {name="720S · Papaya",inspired="McLaren 720S",color={246,103,24},mm={4543,1930,1196,2670},roofTone="black",shape="720",wing="active"},
+ {name="P1 · Volcano",inspired="McLaren P1",color={241,192,29},mm={4588,1946,1188,2670},roofTone="black",shape="p1",wing="p1"},
+ {name="Senna · Track",inspired="McLaren Senna",color={230,89,27},mm={4744,1958,1229,2670},roofTone="black",shape="senna",wing="senna"},
+ {name="488 GTB · Rosso",inspired="Ferrari 488 GTB",color={204,20,35},mm={4568,1952,1213,2650},roofTone="body",shape="488",wing="lip"},
+ {name="SF90 · Stradale",inspired="Ferrari SF90 Stradale",color={225,26,38},mm={4710,1972,1186,2650},roofTone="black",shape="sf90",wing="active"},
+ {name="Huracán EVO · Verde",inspired="Lamborghini Huracán EVO",color={125,200,40},mm={4520,1933,1165,2620},roofTone="body",shape="huracan",wing="lip"},
+ {name="911 GT3 RS · Weissach",inspired="Porsche 911 GT3 RS (992)",color={213,216,214},mm={4572,1900,1322,2457},roofTone="black",shape="911",wing="swan"},
+ {name="Chiron · Atlantic",inspired="Bugatti Chiron",color={42,151,221},mm={4544,2038,1212,2711},roofTone="body",shape="chiron",wing="active"},
+ {name="Jesko Attack · Pearl",inspired="Koenigsegg Jesko Attack",color={222,225,218},mm={4626,2030,1210,2700},roofTone="body",shape="jesko",wing="jesko"},
+ {name="GT-R R35 · Gunmetal",inspired="Nissan GT-R R35 (2017)",color={95,102,112},mm={4710,1895,1370,2780},roofTone="body",shape="gtr",wing="gtr"},
 }
-C.paints={{name="Заводской"},{name="Чёрный",rgb={20,20,24}},{name="Жемчуг",rgb={228,228,222}},{name="Фиолетовый",rgb={103,50,180}},{name="Серебро",rgb={146,157,167}}}
+C.paints={{name="Заводской"},{name="Чёрный",rgb={22,23,27}},{name="Жемчуг",rgb={225,225,218}},{name="Фиолетовый",rgb={94,45,156}},{name="Серебро",rgb={143,154,163}}}
 C.suspensions={{name="Мягкая",stiffness=12000,damping=700},{name="Спорт",stiffness=24000,damping=1200},{name="Трек",stiffness=40000,damping=1800}}
+-- t, half-width / max half-width, centre deck / total height, outer shoulder / total height.
 C.profiles={
- {{0,.56,2.7},{.12,.9,3.15},{.25,1,3.7},{.45,.9,3.3},{.68,1,3.7},{.88,.97,3.55},{1,.75,3.25}},
- {{0,.48,2.6},{.16,.95,3.35},{.29,1,3.75},{.48,.87,3.4},{.7,1,3.8},{.9,.88,3.55},{1,.69,3.1}},
- {{0,.68,2.65},{.12,.97,3.05},{.28,1,3.6},{.48,.91,3.25},{.72,1,3.75},{.92,1,3.6},{1,.85,3.45}},
- {{0,.67,2.9},{.15,.93,3.5},{.29,1,3.85},{.48,.88,3.55},{.7,1,3.9},{.9,.96,3.75},{1,.81,3.5}},
- {{0,.74,2.8},{.14,.98,3.15},{.26,1,3.65},{.48,.9,3.5},{.7,1,3.8},{.9,.95,3.55},{1,.81,3.4}},
- {{0,.77,2.55},{.15,.96,3.0},{.28,1,3.4},{.48,.96,3.45},{.72,1,3.65},{.9,.98,3.5},{1,.86,3.2}},
- {{0,.62,3.05},{.13,.86,3.55},{.28,.96,4.0},{.48,.9,3.8},{.7,1,4.0},{.88,.99,3.8},{1,.79,3.5}},
- {{0,.78,3.1},{.16,.98,3.7},{.29,1,4.05},{.48,.91,3.85},{.7,1,4.0},{.9,.96,3.9},{1,.78,3.65}},
- {{0,.58,2.55},{.14,.94,3.0},{.28,1,3.6},{.46,.86,3.4},{.69,1,3.6},{.87,.94,3.45},{1,.68,3.1}},
- {{0,.85,3.2},{.14,.96,3.65},{.28,1,3.85},{.48,.95,3.75},{.7,1,3.9},{.9,.98,4.0},{1,.89,3.8}},
+ {{0,.68,.29,.28},{.07,.87,.37,.40},{.18,.99,.42,.61},{.28,1,.44,.62},{.4,.93,.43,.51},{.51,.91,.43,.50},{.65,.98,.46,.58},{.77,1,.50,.63},{.89,.96,.48,.56},{1,.85,.43,.44}},
+ {{0,.59,.25,.28},{.08,.88,.36,.43},{.21,1,.43,.62},{.31,.98,.45,.62},{.44,.84,.42,.48},{.55,.86,.43,.51},{.67,.99,.48,.63},{.79,1,.52,.63},{.91,.90,.46,.52},{1,.71,.38,.39}},
+ {{0,.87,.26,.29},{.08,.98,.34,.43},{.20,1,.43,.61},{.31,.98,.45,.61},{.43,.91,.41,.51},{.55,.93,.43,.53},{.68,1,.49,.62},{.80,1,.51,.60},{.91,.98,.47,.51},{1,.94,.41,.44}},
+ {{0,.67,.31,.30},{.08,.87,.38,.44},{.20,.99,.45,.62},{.30,.98,.45,.62},{.42,.90,.43,.54},{.52,.88,.44,.52},{.66,.98,.48,.61},{.78,1,.52,.63},{.9,.96,.49,.55},{1,.83,.44,.45}},
+ {{0,.79,.26,.28},{.08,.96,.34,.42},{.20,1,.42,.60},{.30,.99,.44,.61},{.41,.91,.42,.53},{.52,.9,.42,.52},{.65,.99,.46,.62},{.77,1,.49,.64},{.9,.96,.45,.53},{1,.89,.40,.43}},
+ {{0,.83,.25,.28},{.09,.97,.31,.39},{.21,1,.40,.61},{.32,.98,.44,.59},{.44,.93,.44,.50},{.54,.94,.45,.51},{.67,1,.46,.61},{.79,1,.48,.61},{.92,.96,.42,.49},{1,.89,.39,.41}},
+ {{0,.62,.29,.32},{.09,.83,.36,.47},{.21,.97,.42,.65},{.31,.98,.43,.65},{.43,.91,.42,.51},{.55,.91,.44,.51},{.68,.98,.46,.60},{.79,1,.48,.62},{.91,.95,.42,.52},{1,.79,.36,.40}},
+ {{0,.72,.37,.38},{.09,.91,.43,.49},{.20,1,.49,.64},{.31,.99,.50,.64},{.43,.94,.48,.54},{.54,.96,.49,.54},{.66,1,.52,.61},{.78,.99,.54,.63},{.9,.96,.48,.55},{1,.89,.43,.46}},
+ {{0,.59,.23,.26},{.08,.87,.31,.4},{.20,1,.40,.61},{.31,.97,.43,.61},{.42,.87,.40,.49},{.52,.88,.42,.50},{.65,.99,.45,.61},{.77,1,.48,.64},{.9,.96,.43,.53},{1,.8,.35,.40}},
+ {{0,.83,.40,.41},{.08,.94,.48,.49},{.20,1,.51,.57},{.31,.98,.51,.57},{.43,.95,.50,.53},{.54,.95,.50,.53},{.66,.99,.50,.57},{.78,1,.51,.59},{.9,.99,.49,.55},{1,.92,.46,.49}},
+}
+-- Separate windscreen/roof/fastback station sets: t, half-width ratio, height ratio.
+C.canopies={
+ {{.285,.65,.46},{.34,.60,.72},{.41,.51,.96},{.48,.49,1},{.56,.48,.99},{.63,.44,.87},{.70,.37,.65},{.76,.29,.51}},
+ {{.28,.60,.46},{.35,.54,.77},{.43,.45,.98},{.49,.44,1},{.56,.43,.97},{.62,.37,.83},{.68,.29,.62},{.73,.20,.51}},
+ {{.29,.63,.46},{.36,.57,.78},{.43,.49,.99},{.50,.48,1},{.56,.47,.97},{.62,.43,.81},{.68,.36,.62},{.72,.28,.52}},
+ {{.28,.66,.46},{.35,.60,.74},{.43,.52,.96},{.50,.52,1},{.57,.51,.99},{.64,.46,.86},{.71,.37,.65},{.76,.30,.53}},
+ {{.27,.66,.44},{.34,.61,.74},{.42,.53,.97},{.49,.52,1},{.56,.52,.99},{.63,.47,.88},{.69,.36,.65},{.74,.25,.50}},
+ {{.265,.68,.45},{.34,.61,.72},{.415,.53,.98},{.48,.52,1},{.555,.52,.98},{.63,.45,.80},{.70,.34,.58},{.76,.23,.49}},
+ {{.305,.67,.45},{.37,.60,.73},{.44,.55,.94},{.51,.54,1},{.58,.53,.99},{.65,.49,.90},{.73,.42,.69},{.82,.28,.47}},
+ {{.29,.68,.52},{.36,.63,.78},{.43,.55,.98},{.50,.54,1},{.57,.54,.99},{.64,.51,.91},{.71,.44,.72},{.77,.33,.56}},
+ {{.27,.66,.43},{.34,.60,.77},{.41,.51,.98},{.48,.49,1},{.55,.49,.97},{.62,.46,.86},{.69,.36,.64},{.76,.24,.48}},
+ {{.285,.76,.52},{.35,.69,.77},{.42,.60,.98},{.5,.59,1},{.58,.58,.98},{.65,.56,.87},{.73,.49,.65},{.81,.36,.52}},
 }
 function C.plan(which,paint)
- local selected=which or C.selected;local d=assert(C.catalog[selected],"Нет модели");local p={name=d.name,inspired=d.inspired,parts={},bill={},length=d.length,width=d.width}
- local colors={body=(C.paints[paint or C.paint]or C.paints[1]).rgb or d.color,black={19,20,24},glass={42,58,65},metal={84,89,95},white={221,239,255},red={244,35,53},accent={116,70,222}}
- local function add(id,kind,x,y,z,sx,sy,sz,tone,rx,ry,rz,second,group)
-  assert(not p.ids or not p.ids[id],"Duplicate car part")
-  p.ids=p.ids or {};p.ids[id]=true
-  local q={id=id,kind=kind,pos={x,y,z},size=sx and {sx,sy,sz}or nil,color=colors[tone or "body"],rot={rx or 0,ry or 0,rz or 0},second=second,group=group or "body"}
+ local selected=which or C.selected;local d=assert(C.catalog[selected],"Нет модели")
+ local l,w,h,wb=d.mm[1]/220,d.mm[2]/440,d.mm[3]/220,d.mm[4]/220
+ local p={name=d.name,inspired=d.inspired,parts={},bill={},length=l,width=w*2,height=h,wheelbase=wb,mm=d.mm,revision=2}
+ local colors={body=(C.paints[paint or C.paint]or C.paints[1]).rgb or d.color,black={15,17,20},glass={26,36,44},metal={125,130,136},white={231,241,250},red={240,25,38},accent={205,42,39},darkBody={17,34,54},amber={245,161,34}}
+ local ids={}
+ local function add(id,kind,pos,size,tone,group,rot,second,basis)
+  assert(not ids[id],"Duplicate car part: "..id);ids[id]=true
+  local q={id=id,kind=kind,pos=pos,size=size,color=colors[tone or "body"],group=group or "body",rot=rot or {0,0,0},second=second,basis=basis}
+  if q.size then for i=1,3 do q.size[i]=math.max(.1,q.size[i])end end
   p.parts[#p.parts+1]=q;p.bill[kind]=(p.bill[kind]or 0)+1;return q
  end
- local w,l=d.width/2,d.length;local front=-l*0.30;local rear=l*0.29
- add("spine","MetalBlock",0,2.25,0,2.6,0.65,l*0.81,"metal")
- for i,z in ipairs({front,0,rear})do add("crossmember"..i,"MetalBlock",0,2.3,z,w*1.85,0.55,0.6,"metal")end
- for _,s in ipairs({-1,1})do
-  add("rail"..s,"MetalBlock",s*2.3,2.3,0,1,0.6,l*0.78,"metal")
-  add("sill"..s,"PlasticBlock",s*(w-0.4),2.55,0,0.65,0.75,l*0.78)
+ local function V(a,b,c)return {a,b,c}end
+ local function plus(a,b)return V(a[1]+b[1],a[2]+b[2],a[3]+b[3])end
+ local function minus(a,b)return V(a[1]-b[1],a[2]-b[2],a[3]-b[3])end
+ local function times(a,t)return V(a[1]*t,a[2]*t,a[3]*t)end
+ local function dot(a,b)return a[1]*b[1]+a[2]*b[2]+a[3]*b[3]end
+ local function cross(a,b)return V(a[2]*b[3]-a[3]*b[2],a[3]*b[1]-a[1]*b[3],a[1]*b[2]-a[2]*b[1])end
+ local function norm(a)local n=math.sqrt(dot(a,a));assert(n>1e-8,"Collapsed panel");return times(a,1/n)end
+ local function panel(id,a,b,c,e,tone,kind)
+  local centre=times(plus(plus(a,b),plus(c,e)),.25)
+  local x=norm(plus(minus(b,a),minus(c,e)));local z=norm(plus(minus(e,a),minus(c,b)));local y=norm(cross(z,x));z=norm(cross(x,y))
+  local sx,sz,sy=0,0,0
+  for _,point in ipairs({a,b,c,e})do local delta=minus(point,centre);sx=math.max(sx,math.abs(dot(delta,x))*2);sz=math.max(sz,math.abs(dot(delta,z))*2);sy=math.max(sy,math.abs(dot(delta,y))*2)end
+  local basis={x[1],y[1],z[1],x[2],y[2],z[2],x[3],y[3],z[3]}
+  return add(id,kind or "PlasticBlock",centre,V(sx+.025,math.max(.1,sy+.065),sz+.025),tone,"body",nil,nil,basis)
  end
- -- Narrow longitudinal panels describe the body contour and leave real wheel openings.
- local profile=C.profiles[selected]
- local function contour(t)
-  for i=2,#profile do if t<=profile[i][1]then local a,b=profile[i-1],profile[i];local f=(t-a[1])/(b[1]-a[1]);return a[2]+(b[2]-a[2])*f,a[3]+(b[3]-a[3])*f end end
-  return profile[#profile][2],profile[#profile][3]
+ local function box(id,x,y,z,sx,sy,sz,tone,rx,ry,rz,kind)
+  return add(id,kind or "PlasticBlock",V(x,y,z),V(sx,sy,sz),tone,"body",V(rx or 0,ry or 0,rz or 0))
  end
- local slices=40;local dz=l/slices
- for i=1,slices do
-  local z=-l/2+(i-0.5)*dz;local t=(z+l/2)/l
-  local taper,y=contour(t);local half=w*taper
-  local _,before=contour(math.max(0,t-0.005));local _,after=contour(math.min(1,t+0.005));local slope=-math.deg(math.atan((after-before)/(l*0.01)))
-  local nearWheel=math.abs(z-front)<1.65 or math.abs(z-rear)<1.65
-  add("deck"..i,"PlasticBlock",0,y,z,(nearWheel and half*1.32 or half*1.85),0.24,dz+0.04,"body",slope)
-  for _,s in ipairs({-1,1})do
-   if nearWheel then
-    local centre=math.abs(z-front)<1.65 and front or rear
-    local archY=1.7+math.sqrt(math.max(0,1.85^2-(z-centre)^2))
-    add("arch"..i..":"..s,"PlasticBlock",s*(half-0.28),archY,z,0.55,0.23,dz+0.04)
-    local dx=half*0.36-0.28;local dy=archY-y
-    add("shoulder"..i..":"..s,"PlasticBlock",s*(half*.82-.14),(y+archY)/2,z,math.sqrt(dx*dx+dy*dy)+.15,.18,dz+.04,"body",0,0,s*math.deg(math.atan(dy/dx)))
-   else
-    add("flank"..i..":"..s,"PlasticBlock",s*(half-0.25),(y+2.45)/2,z,0.5,math.max(0.45,y-2.45),dz+0.04)
+ local function beam(id,a,b,width,tone,depth,kind)
+  local delta=minus(b,a);local x=norm(delta);local ref=math.abs(x[2])>.95 and V(0,0,1)or V(0,1,0);local z=norm(cross(x,ref));local y=norm(cross(z,x))
+  return add(id,kind or "PlasticBlock",times(plus(a,b),.5),V(math.sqrt(dot(delta,delta))+.035,width,depth or width),tone,"body",nil,nil,{x[1],y[1],z[1],x[2],y[2],z[2],x[3],y[3],z[3]})
+ end
+ local function curve(id,points,width,tone,depth)
+  for i=2,#points do beam(id..":"..i,points[i-1],points[i],width,tone,depth)end
+ end
+ local function lerpProfile(rows,t)
+  for i=2,#rows do if t<=rows[i][1]then
+   local a,b=rows[i-1],rows[i];local dt=b[1]-a[1];local f=math.clamp((t-a[1])/dt,0,1);local out={t}
+   for k=2,#a do
+    if selected==6 or selected==10 then out[k]=a[k]+(b[k]-a[k])*f
+    else
+     local prev,nextRow=rows[math.max(1,i-2)],rows[math.min(#rows,i+1)]
+     local m0=(b[k]-prev[k])/(b[1]-prev[1]);local m1=(nextRow[k]-a[k])/(nextRow[1]-a[1])
+     local f2,f3=f*f,f*f*f
+     out[k]=math.clamp((2*f3-3*f2+1)*a[k]+(f3-2*f2+f)*dt*m0+(-2*f3+3*f2)*b[k]+(f3-f2)*dt*m1,math.min(a[k],b[k]),math.max(a[k],b[k]))
+    end
    end
-  end
+   return out
+  end end
+  return rows[#rows]
  end
- -- Sloping roof/glazing, seats, dashboard and engine cover.
- local cabin=d.cabin;local roof=d.roof+0.65
- add("roof","PlasticBlock",0,roof,cabin,4.35,0.24,3.4)
- add("windscreen","GlassBlock",0,(roof+3.35)/2,cabin-2.45,4.2,0.15,2.1,"glass",-31)
- add("rearGlass","GlassBlock",0,(roof+3.55)/2,cabin+2.45,3.9,0.15,2.0,"glass",28)
+ local function body(t,u)
+  local v=lerpProfile(C.profiles[selected],t);local f=math.abs(u)
+  local blend=f^1.7;local crown=math.sin(math.pi*f)*.055
+  return V(w*v[2]*u,h*(v[3]+(v[4]-v[3])*blend+crown),l*(t-.5))
+ end
+ local front,rear=-wb/2,wb/2;local wheelY=1.58;local archR=1.74
+ -- A connected ladder-frame. Skin is genuine scaled blocks, not local-only meshes.
+ box("spine",0,1.3,0,2.4,.5,l*.84,"metal",nil,nil,nil,"MetalBlock")
+ for i,z in ipairs({front,0,rear})do box("crossmember"..i,0,1.35,z,w*1.74,.4,.5,"metal",nil,nil,nil,"MetalBlock")end
  for _,s in ipairs({-1,1})do
-  add("window"..s,"GlassBlock",s*2.27,(roof+3.25)/2,cabin,0.14,roof-3.25,3.6,"glass",0,0,s*10)
-  add("pillarA"..s,"PlasticBlock",s*2.12,(roof+3.35)/2,cabin-2.3,0.23,0.22,2.3,"body",-31)
-  add("pillarC"..s,"PlasticBlock",s*2.1,(roof+3.55)/2,cabin+2.25,0.3,0.24,2.3,"body",28)
-  add("mirrorArm"..s,"PlasticBlock",s*2.95,3.95,cabin-1.7,1,0.18,0.2,"black")
-  add("mirror"..s,"PlasticBlock",s*3.45,4.0,cabin-1.7,0.65,0.32,0.8)
-  add("handle"..s,"MetalBlock",s*(w+0.025),3.4,cabin+0.25,0.1,0.12,0.55,"metal")
-  add("intake"..s,"PlasticBlock",s*(w-0.12),2.95,2.4,d.intake=="scoop"and 0.4 or 0.16,0.65,d.intake=="blade"and 2.9 or 1.9,"black",0,s*12)
-  add("doorline"..s,"PlasticBlock",s*(w+0.015),3.0,0,0.07,0.075,3.5,"black")
-  add("seatback"..s,"PlasticBlock",s*1.1,3.65,cabin+0.75,1.25,1.6,0.4,"black",-8)
+  box("rail"..s,s*w*.73,1.25,0,.45,.65,l*.82,"metal",nil,nil,nil,"MetalBlock")
+  box("sill"..s,s*w*.91,.8,0,.45,.5,l*.67,"black")
  end
- add("driver","CarSeat",-1.05,3.0,cabin-0.15,nil,nil,nil,"black",0,0,0,nil,"seat")
- add("passenger","PlasticBlock",1.05,2.95,cabin-0.15,1.3,0.3,1.45,"black")
- add("dash","PlasticBlock",0,3.65,cabin-1.45,4.0,0.4,0.55,"black")
- add("console","PlasticBlock",0,3.15,cabin,0.5,0.6,2.0,"black")
- add("splitter","PlasticBlock",0,2.3,-l/2+0.25,w*1.8,0.16,0.8,"black")
- add("diffuser","PlasticBlock",0,2.35,l/2-0.3,w*1.75,0.2,1.2,"black")
- add("grille","PlasticBlock",0,2.95,-l/2+0.08,selected==8 and 1.3 or w*1.2,selected==8 and 1.05 or 0.36,0.12,"black")
+ -- Curved double-curvature deck: authored shoulder and centre heights vary separately.
+ local long,across=48,8
+ for i=1,long do for j=1,across do
+  local a,b=(i-1)/long,i/long;local u,v=-1+2*(j-1)/across,-1+2*j/across
+  local tone=d.shape=="chiron"and a>.64 and "darkBody"or "body"
+  panel("skin:deck:"..i..":"..j,body(a,u),body(a,v),body(b,v),body(b,u),tone)
+ end end
+ -- Lower flanks are clipped to circular wheel apertures, rather than covered by slabs.
+ local function lowY(z)
+  local low=.7
+  for _,axle in ipairs({front,rear})do local delta=z-axle;if math.abs(delta)<archR then low=math.max(low,wheelY+math.sqrt(archR^2-delta^2))end end
+  return low
+ end
+ for _,s in ipairs({-1,1})do for i=1,long do
+  local ta,tb=(i-1)/long,i/long;local a,b=body(ta,s),body(tb,s);local ya,yb=lowY(a[3]),lowY(b[3])
+  if ya<a[2]-.03 and yb<b[2]-.03 then
+   local bottomA=V(a[1]*.94,ya,a[3]);local bottomB=V(b[1]*.94,yb,b[3]);local midA=V(a[1]*1.005,(ya+a[2])*.5,a[3]);local midB=V(b[1]*1.005,(yb+b[2])*.5,b[3])
+   local tone=d.shape=="chiron"and ta>.6 and "darkBody"or "body"
+   panel("skin:side:upper:"..s..":"..i,a,b,midB,midA,tone)
+   panel("skin:side:lower:"..s..":"..i,midA,midB,bottomB,bottomA,tone)
+  end
+ end end
+ -- Close both bumper faces with curved horizontal courses.
+ for _,t in ipairs({0,1})do for j=1,12 do
+  local u,v=-1+2*(j-1)/12,-1+2*j/12;local a,b=body(t,u),body(t,v)
+  local ma,mb=V(a[1],.65,a[3]),V(b[1],.65,b[3])
+  panel("skin:bumper:"..t..":"..j,a,b,mb,ma,d.shape=="chiron"and t==1 and "darkBody"or "body")
+ end end
+ -- Every canopy has its own longitudinal shape; transverse curvature removes the box roof.
+ local canopy=C.canopies[selected];local start,finish=canopy[1][1],canopy[#canopy][1]
+ local function canopyPoint(t,u)
+  local row=lerpProfile(canopy,t);local base=body(t,u*.7)[2]-.05;local rounded=math.max(0,1-math.abs(u)^3.5)^.45
+  return V(w*row[2]*u,base+(h*row[3]-base)*rounded,l*(t-.5))
+ end
+ local roofStart,roofEnd=start+(finish-start)*.31,start+(finish-start)*.68
+ for i=1,28 do for j=1,10 do
+  local ta=start+(finish-start)*(i-1)/28;local tb=start+(finish-start)*i/28;local u,v=-1+2*(j-1)/10,-1+2*j/10
+  local centre=(u+v)*.5;local tm=(ta+tb)*.5;local isRoof=tm>roofStart and tm<roofEnd and math.abs(centre)<.61
+  local isPillar=math.abs(centre)>.8 and (math.abs(tm-roofStart)<.012 or math.abs(tm-roofEnd)<.012)
+  local tone=isRoof and d.roofTone or(isPillar and "body"or "glass")
+  panel("canopy:"..i..":"..j,canopyPoint(ta,u),canopyPoint(ta,v),canopyPoint(tb,v),canopyPoint(tb,u),tone,tone=="glass"and "GlassBlock"or "PlasticBlock")
+ end end
+ -- Seals and roof rails follow the curved canopy rather than a generic rectangular window.
  for _,side in ipairs({-1,1})do
-  add("frontIntake"..side,"PlasticBlock",side*w*.72,2.85,-l/2+.2,1.1,0.4,0.13,"black")
-  if selected==8 then
-   for j=0,12 do local a=-math.pi*.65+j*math.pi*1.3/12
-    add("cLine"..side..":"..j,"MetalBlock",side*(w+.025),3.85+math.cos(a)*1.05,cabin+1.2+math.sin(a)*1.8,0.12,0.28,0.4,"metal",math.deg(a))
-   end
-  elseif selected==7 then
-   for j=1,5 do add("fenderVent"..side..":"..j,"PlasticBlock",side*w*.78,4.07,front-.65+j*.22,0.65,0.07,0.08,"black")end
-  elseif selected==10 then
-   add("bonnetVent"..side,"PlasticBlock",side*1.3,3.83,-l*.27,0.55,.09,1.1,"black")
-  elseif selected==3 or selected==9 then
-   add("canard"..side,"PlasticBlock",side*(w+.1),2.8,-l*.38,.85,.1,1.4,"black",-12,side*15)
-  end
+  local seal={};for i=0,28 do seal[#seal+1]=canopyPoint(start+(finish-start)*i/28,side*.99)end;curve("windowSeal"..side,seal,.105,"black")
+  local roofRail={};for i=0,14 do roofRail[#roofRail+1]=canopyPoint(roofStart+(roofEnd-roofStart)*i/14,side*.65)end;curve("roofRail"..side,roofRail,.11,d.roofTone)
  end
- for i=-2,2 do
-  add("diffuserFin"..i,"PlasticBlock",i*0.9,2.55,l/2-0.3,0.12,0.55,1.1,"black")
-  add("engineVent"..i,"PlasticBlock",i*0.65,3.83,l*0.28,0.17,0.09,1.85,"black")
- end
+ -- Common interior is below the independent exterior surfaces.
+ add("driver","CarSeat",V(-1.03,1.85,l*.025),nil,"black","seat")
+ box("floor",0,1.55,.2,4.6,.25,5.7,"black")
+ box("dash",0,2.6,l*(start-.5)+.45,4.3,.35,.8,"black")
+ box("console",0,2.1,.2,.5,.6,3.2,"black")
  for _,s in ipairs({-1,1})do
-  if d.lamps=="round"then
-   for j=0,9 do local a=j*math.pi/5;add("head"..s..":"..j,"PlasticBlock",s*w*0.65+math.cos(a)*0.49,3.55+math.sin(a)*0.4,-l/2+0.65,0.28,0.19,0.16,"white",0,0,math.deg(a))end
-  else
-   local segments=d.lamps=="quad"and 4 or(d.lamps=="fork"and 3 or 2)
-   for j=1,segments do add("head"..s..":"..j,"PlasticBlock",s*(w*0.51+j*0.3),3.36+j*0.08,-l/2+0.5+j*0.17,0.5,0.13,0.16,"white",0,s*14,s*-12)end
+  box("seatPad"..s,s*1.05,1.95,.4,1.3,.3,1.6,"black")
+  box("seatBack"..s,s*1.05,2.65,1.15,1.4,1.8,.35,"black",-12)
+  local mirrorBase=body(.37,s*.8);local mirrorEnd=V(s*(w+.3),h*.66,l*(-.12))
+  beam("mirrorArm"..s,mirrorBase,mirrorEnd,.14,"black");box("mirror"..s,mirrorEnd[1],mirrorEnd[2],mirrorEnd[3],.6,.24,.48,"body",0,s*15)
+  local handle=body(.51,s);box("handle"..s,handle[1]+s*.035,handle[2]-.3,handle[3],.1,.1,.47,"metal")
+ end
+ -- Surface decals are made from scaled parts. Points are in each model's own body coordinates.
+ local function topCurve(id,side,pts,width,tone,depth)
+  local points={};for _,a in ipairs(pts)do local point=body(a[1],side*a[2]);point[2]=point[2]+(a[3]or .085);points[#points+1]=point end
+  curve(id..side,points,width,tone,depth)
+ end
+ local function ring(id,centre,rx,ry,plane,tone,width,n)
+  local points={};for j=0,n or 20 do local a=j/(n or 20)*math.pi*2
+   points[#points+1]=plane=="side"and V(centre[1],centre[2]+math.sin(a)*ry,centre[3]+math.cos(a)*rx)or V(centre[1]+math.cos(a)*rx,centre[2]+math.sin(a)*ry,centre[3])
+  end;curve(id,points,width,tone)
+ end
+ local noseZ,tailZ=-l/2-.055,l/2+.055
+ local function frontVent(id,x,y,sx,sy)
+  box(id,x,y,noseZ,sx,sy,.12,"black")
+  for j=1,4 do box(id.."slat"..j,x-sx*.5+j*sx/5,y,noseZ-.08,.1,sy*.85,.1,"black")end
+ end
+ local function tailRing(id,x,y,r)
+  box(id.."core",x,y,tailZ,.52,.52,.12,"black");ring(id,V(x,y,tailZ+.09),r,r,"front","red",.105,24)
+ end
+ local function sideScoop(id,side,z,y,rx,ry,shape)
+  local x=side*w*.982
+  local points={}
+  for j=0,18 do local a=j/18*math.pi*2;local f=shape=="triangle"and (math.cos(a)>=0 and 1 or .65)or 1
+   points[#points+1]=V(x,y+math.sin(a)*ry,z+math.cos(a)*rx*f)
   end
-  if d.roundRear then
-   for k=1,2 do for j=0,7 do local a=j*math.pi/4;add("tail"..s..":"..k..":"..j,"PlasticBlock",s*(w*0.45+k*0.6)+math.cos(a)*0.22,3.4+math.sin(a)*0.22,l/2-0.1,0.18,0.13,0.14,"red",0,0,math.deg(a))end end
-  else add("tail"..s,"PlasticBlock",s*w*0.56,3.4,l/2-0.12,w*0.7,0.12,0.13,"red")end
-  add("exhaust"..s,"MetalBlock",s*1.0,2.8,l/2+0.08,0.45,0.35,0.4,"black")
+  -- Black infill is a set of narrow upright strips, not just a floating outline.
+  for j=1,9 do local f=-1+2*(j-.5)/9;local span=math.sqrt(math.max(0,1-f*f))*ry
+   box(id.."fill"..side..":"..j,x,y,z+rx*f,.13,span*2,rx*2/9+.025,"black")
+  end
+  curve(id.."rim"..side,points,.12,"body")
  end
- if d.wing>0 then
-  local h=d.wing==2 and 5.2 or 4.05
-  for _,s in ipairs({-1,1})do add("wingStand"..s,"PlasticBlock",s*2.0,(h+d.tail)/2,l*0.38,0.2,h-d.tail,0.35,"black")end
-  add("wing","PlasticBlock",0,h,l*0.39,w*1.95,0.17,d.wing==2 and 1.7 or 0.8,"black",-7)
-  for _,s in ipairs({-1,1})do add("wingEnd"..s,"PlasticBlock",s*w*0.97,h+0.15,l*0.39,0.13,0.6,1.7,"black")end
+ -- Ten different signatures, not a lamp/wing switch on one car.
+ for _,s in ipairs({-1,1})do
+  if d.shape=="720"then
+   for row=1,5 do topCurve("eyeSocket"..row,s,{{.055,.52+row*.04},{.08,.70+row*.035},{.13,.88},{.19,.84}},.21,"black",.13)end
+   topCurve("eyeLED",s,{{.059,.57},{.078,.73},{.112,.85},{.15,.88}},.105,"white")
+   topCurve("bonnetRidge",s,{{.11,.3},{.2,.38},{.29,.46}},.12,"body")
+   sideScoop("doubleSkin",s,l*.13,h*.39,1.65,.49,"oval")
+   frontVent("frontOpening"..s,s*w*.48,h*.18,2.0,.55)
+   curve("tailArc"..s,{V(s*w*.25,h*.43,tailZ),V(s*w*.64,h*.47,tailZ),V(s*w*.87,h*.42,tailZ)},.1,"red")
+   ring("exhaust"..s,V(s*.62,h*.33,tailZ+.14),.23,.23,"front","metal",.11,16)
+  elseif d.shape=="p1"then
+   for row=1,4 do topCurve("p1Pocket"..row,s,{{.06,.5+row*.05},{.09,.79},{.16,.9},{.2,.86}},.23,"black")end
+   topCurve("p1Boomerang",s,{{.075,.54},{.092,.8},{.16,.88},{.192,.82}},.11,"white")
+   topCurve("bonnetNostril",s,{{.20,.16},{.25,.21},{.28,.22}},.25,"black",.4)
+   sideScoop("deepIntake",s,l*.12,h*.40,1.75,.7,"oval")
+   frontVent("frontOpening"..s,s*w*.5,h*.16,2.0,.62)
+   curve("p1Tail"..s,{V(s*w*.15,h*.45,tailZ),V(s*w*.7,h*.48,tailZ),V(s*w*.86,h*.4,tailZ),V(s*w*.72,h*.29,tailZ)},.11,"red")
+  elseif d.shape=="senna"then
+   topCurve("sennaCarbon",s,{{.05,.3},{.10,.48},{.20,.48},{.28,.32}},.42,"black",.65)
+   for row=1,3 do topCurve("sennaEye"..row,s,{{.07,.6+row*.05},{.12,.87},{.20,.91}},.19,"black")end
+   topCurve("sennaLED",s,{{.095,.6},{.12,.8},{.17,.9}},.11,"white")
+   sideScoop("sennaIntake",s,l*.17,h*.48,1.7,.91,"triangle")
+   frontVent("sennaDuct"..s,s*w*.53,h*.17,1.7,.8)
+   box("sennaBlade"..s,s*w*.83,.85,-l*.42,.15,.8,1.0,"black",0,s*12)
+   box("sennaDoorGlass"..s,s*w*.90,h*.32,0,.13,.8,2.6,"glass",0,s*3,0,"GlassBlock")
+   box("sennaTailLED"..s,s*w*.64,h*.43,tailZ,1.8,.11,.12,"red")
+  elseif d.shape=="488"then
+   for row=1,3 do topCurve("488Housing"..row,s,{{.06,.59+row*.035},{.12,.78},{.24,.91}},.19,"black")end
+   topCurve("488VerticalLED",s,{{.065,.59},{.12,.76},{.23,.88}},.115,"white")
+   sideScoop("488SplitDuct",s,l*.15,h*.44,1.3,.73,"triangle")
+   beam("488DuctDivider"..s,V(s*w,h*.45,l*.08),V(s*w,h*.43,l*.21),.14,"body",.15)
+   frontVent("488Front"..s,s*w*.5,h*.20,2.05,.75)
+   tailRing("488RearLamp"..s,s*w*.68,h*.40,.31)
+   ring("488Exhaust"..s,V(s*w*.46,h*.18,tailZ+.1),.25,.25,"front","metal",.11,16)
+  elseif d.shape=="sf90"then
+   for row=1,3 do topCurve("sfHousing"..row,s,{{.055,.48+row*.05},{.09,.82},{.16,.88}},.2,"black")end
+   topCurve("sfCLED",s,{{.065,.5},{.08,.76},{.11,.85},{.16,.83}},.11,"white")
+   sideScoop("sf90HighIntake",s,l*.17,h*.53,1.5,.5,"triangle")
+   frontVent("sf90Front"..s,s*w*.49,h*.17,2.55,.65)
+   for k=1,2 do
+    local x=s*w*(.5+k*.16);curve("sfSquareTail"..s..":"..k,{V(x-.23,h*.44-.16,tailZ),V(x+.23,h*.44-.16,tailZ),V(x+.23,h*.44+.16,tailZ),V(x-.23,h*.44+.16,tailZ),V(x-.23,h*.44-.16,tailZ)},.11,"red")
+   end
+   ring("sfExhaust"..s,V(s*.75,h*.29,tailZ+.12),.28,.28,"front","metal",.11,16)
+  elseif d.shape=="huracan"then
+   for row=1,3 do topCurve("huracanEye"..row,s,{{.065,.51+row*.07},{.10,.77},{.19,.89}},.2,"black")end
+   topCurve("huracanY1",s,{{.08,.58},{.115,.76},{.18,.85}},.11,"white")
+   topCurve("huracanY2",s,{{.115,.76},{.14,.62}},.11,"white")
+   sideScoop("huracanWedgeScoop",s,l*.13,h*.37,1.7,.53,"triangle")
+   frontVent("huracanHex"..s,s*w*.55,h*.18,2.2,.64)
+   topCurve("huracanBonnet",s,{{.06,.18},{.23,.48},{.29,.5}},.1,"body")
+   curve("huracanRearY"..s,{V(s*w*.43,h*.42,tailZ),V(s*w*.68,h*.42,tailZ),V(s*w*.84,h*.35,tailZ)},.105,"red")
+   ring("huracanHighExhaust"..s,V(s*.93,h*.30,tailZ+.1),.3,.3,"front","metal",.13,12)
+  elseif d.shape=="911"then
+   local centre=body(.13,s*.71);centre[2]=centre[2]+.18
+   local loop={};for j=0,28 do local a=j/28*math.pi*2;local pt=body(.13+math.sin(a)*.035,s*(.71+math.cos(a)*.13));pt[2]=pt[2]+.15;loop[#loop+1]=pt end
+   curve("911OvalPocket"..s,loop,.22,"black");curve("911OvalLED"..s,loop,.105,"white")
+   topCurve("911HoodVent",s,{{.18,.16},{.26,.22},{.30,.25}},.38,"black",.65)
+   for j=1,5 do topCurve("911FenderGill"..j,s,{{.21+j*.012,.70},{.21+j*.012,.95}},.11,"black")end
+   frontVent("911FrontRadiator"..s,s*w*.54,h*.17,1.8,.75)
+   box("911SideStrake"..s,s*w*.94,1.0,0,.24,.23,l*.25,"black")
+   box("911RearLED"..s,s*w*.48,h*.37,tailZ,w*.95,.105,.12,"red")
+   ring("911Exhaust"..s,V(s*.45,h*.13,tailZ+.15),.22,.22,"front","metal",.105,16)
+  elseif d.shape=="chiron"then
+   for k=1,4 do local x=s*w*(.40+k*.09)
+    curve("chironQuad"..s..":"..k,{V(x-.12,h*.39-.10,noseZ-.08),V(x+.12,h*.39-.10,noseZ-.08),V(x+.12,h*.39+.10,noseZ-.08),V(x-.12,h*.39+.10,noseZ-.08),V(x-.12,h*.39-.10,noseZ-.08)},.10,"white")
+   end
+   frontVent("chironLower"..s,s*w*.57,h*.17,2.2,.48)
+   sideScoop("chironIntake",s,l*.12,h*.43,1.6,1.05,"oval")
+   local line={V(s*w*.52,h*.98,0),V(s*w*.70,h*.94,l*.06),V(s*w*.85,h*.85,l*.13),V(s*w*.98,h*.65,l*.19),V(s*w,h*.45,l*.19),V(s*w*.99,h*.22,l*.14),V(s*w*.96,h*.15,l*.04),V(s*w*.94,h*.18,-l*.08)}
+   curve("chironCBar"..s,line,.15,"metal",.13)
+  elseif d.shape=="jesko"then
+   for row=1,3 do topCurve("jeskoEye"..row,s,{{.075,.62+row*.04},{.13,.82},{.22,.91}},.17,"black")end
+   topCurve("jeskoLED",s,{{.075,.62},{.12,.8},{.21,.88}},.11,"white")
+   sideScoop("jeskoScoop",s,l*.13,h*.35,1.8,.73,"oval")
+   frontVent("jeskoMainDuct"..s,s*w*.49,h*.14,2.3,.7)
+   topCurve("jeskoHoodDam",s,{{.19,.11},{.27,.18},{.30,.19}},.27,"black",.4)
+   box("jeskoCanard"..s,s*w,.9,-l*.37,.8,.12,1.5,"black",-12,s*18)
+   curve("jeskoRearHook"..s,{V(s*w*.28,h*.4,tailZ),V(s*w*.69,h*.43,tailZ),V(s*w*.79,h*.36,tailZ)},.11,"red")
+  elseif d.shape=="gtr"then
+   for row=1,3 do topCurve("gtrHousing"..row,s,{{.06,.54+row*.06},{.12,.83},{.22,.91}},.21,"black")end
+   topCurve("gtrLightning",s,{{.065,.56},{.115,.82},{.18,.88},{.21,.84}},.11,"white")
+   topCurve("gtrBonnetNostril",s,{{.20,.22},{.25,.24},{.28,.22}},.25,"black",.5)
+   frontVent("gtrLowerBrake"..s,s*w*.75,h*.16,.9,.6)
+   for k=1,2 do tailRing("gtrRoundTail"..s..":"..k,s*w*(.40+k*.19),h*.41,k==2 and .32 or .29)end
+   for k=1,2 do ring("gtrExhaust"..s..":"..k,V(s*(w*.55+k*.19),h*.13,tailZ+.15),.19,.19,"front","metal",.11,16)end
+  end
  end
- -- Separate unsprung carriers. Springs/parallel links are placed LAST, after both anchors exist.
+ if d.shape=="p1"then ring("p1CentralExhaust",V(0,h*.34,tailZ+.15),.4,.3,"front","metal",.13,18)end
+ if d.shape=="chiron"then
+  local horse={};for j=0,24 do local a=math.pi*j/24;horse[#horse+1]=V(math.cos(a)*.65,h*.19+math.sin(a)*h*.25,noseZ-.12)end
+  horse[#horse+1]=V(-.65,h*.11,noseZ-.12);horse[#horse+1]=V(.65,h*.11,noseZ-.12);horse[#horse+1]=horse[1]
+  box("chironHorseCore",0,h*.23,noseZ,1.25,h*.32,.15,"black");curve("chironHorseshoe",horse,.14,"metal")
+  box("chironContinuousRearLED",0,h*.43,tailZ,w*1.78,.105,.13,"red")
+  local fin={};for i=0,20 do local t=.70+i*.29/20;local v=body(t,0);v[2]=v[2]+.13;fin[#fin+1]=v end;curve("chironSpine",fin,.11,"metal")
+ elseif d.shape=="gtr"then
+  frontVent("gtrCentralGrille",0,h*.28,3.4,1.25)
+  curve("gtrVGrille",{V(-1.9,h*.43,noseZ-.13),V(-1.3,h*.18,noseZ-.13),V(1.3,h*.18,noseZ-.13),V(1.9,h*.43,noseZ-.13)},.14,"metal")
+ end
+ -- Model-specific rear aerodynamics: no identical spoiler across ten cars.
+ local wingZ=l*.39
+ if d.wing=="senna"or d.wing=="swan"or d.wing=="jesko"then
+  local wingY=d.wing=="swan"and h*1.06 or d.wing=="senna"and h*.98 or h*.91
+  local span=d.wing=="jesko"and w*2.1 or w*1.95
+  for _,s in ipairs({-1,1})do
+   local a=body(.79,s*.45);local b=V(s*w*.46,wingY+.3,wingZ-.45);local c=V(s*w*.46,wingY,wingZ+.1)
+   curve("wingUpright"..s,{a,b,c},d.wing=="swan"and .16 or .23,"black",.3)
+   box("wingEndplate"..s,s*span/2,wingY+.15,wingZ,.14,.65,d.wing=="jesko"and 2.1 or 1.5,"black",-9)
+  end
+  for j=1,16 do local u=-1+2*(j-.5)/16;local dihedral=math.abs(u)^2*.18
+   box("wingMain"..j,u*span/2,wingY+dihedral,wingZ,span/16+.025,.15,d.wing=="jesko"and 1.65 or 1.2,"black",-8,0,u*4)
+   if d.wing~="senna"then box("wingFlap"..j,u*span/2,wingY+.25+dihedral,wingZ+.67,span/16+.025,.13,.58,"black",-19)end
+  end
+ elseif d.wing=="gtr"then
+  for _,s in ipairs({-1,1})do box("gtrWingStand"..s,s*2.0,h*.56,wingZ,.25,.9,.45,"body")end
+  box("gtrSpoiler",0,h*.64,wingZ,w*1.62,.18,.8,"body",-6)
+ elseif d.wing=="p1"then
+  for _,s in ipairs({-1,1})do box("p1WingStand"..s,s*2,h*.51,wingZ,.23,.75,.45,"black")end
+  box("p1DeployableWing",0,h*.59,wingZ,w*1.72,.16,1.0,"black",-7)
+ else
+  local points={};for j=0,20 do local v=body(.98,-.92+j*1.84/20);v[2]=v[2]+.13;points[#points+1]=v end;curve("integratedTailLip",points,.15,"body",.24)
+ end
+ -- Sliced splitters follow each nose's taper; rear diffuser includes actual vertical fins.
+ for j=1,20 do
+  local u=-.98+1.96*(j-.5)/20;local v=body(.015,u)
+  box("frontSplitter"..j,v[1],.57,v[3]-.12,w*2/20+.04,.14,.72,"black",0,-u*14)
+ end
+ box("rearDiffuser",0,.65,l*.46,w*1.72,.16,1.4,"black",10)
+ for j=-3,3 do box("diffuserFin"..j,j*.75,.75,l*.465,.12,.7,1.45,"black",8)end
+ -- Wheels are game mechanisms. No fake rotating locally welded visual wheels.
  local links={}
  for _,s in ipairs({-1,1})do for axle,z in ipairs({front,rear})do
-  local id=s..":"..axle;local wx=s*(w-0.1);local carrier=s*(w-1.0)
-  add("carrier"..id,"MetalBlock",carrier,1.75,z,0.75,1.6,1.7,"metal",0,0,0,nil,"carrier")
-  add("wheel"..id,axle==1 and "FrontWheel"or "BackWheel",wx,1.7,z,nil,nil,nil,"black",0,s==1 and 180 or 0,0,nil,"wheel")
-  links[#links+1]={id="spring"..id,kind="Spring",a={s*2.3,3.05,z},b={carrier,1.85,z},group="spring"}
-  for _,height in ipairs({1.25,2.25})do for _,offset in ipairs({-0.55,0.55})do
-   links[#links+1]={id="arm"..id..":"..height..":"..offset,kind="Bar",a={s*2.3,height,z+offset},b={carrier,height,z+offset},group="link"}
-  end end
+  local id=s..":"..axle;local carrier=s*(w-.95)
+  add("carrier"..id,"MetalBlock",V(carrier,1.5,z),V(.65,1.45,1.65),"metal","carrier")
+  local wheel=add("wheel"..id,axle==1 and "FrontWheel"or "BackWheel",V(s*(w-.1),wheelY,z),nil,"black","wheel",V(0,s==1 and 180 or 0,0));wheel.previewSize={1.0,3.16,3.16}
+  links[#links+1]={"spring"..id,"Spring",V(s*w*.73,2.55,z),V(carrier,1.6,z),"spring"}
+  for _,yy in ipairs({1.05,2.0})do for _,offset in ipairs({-.55,.55})do links[#links+1]={"arm"..id..":"..yy..":"..offset,"Bar",V(s*w*.73,yy,z+offset),V(carrier,yy,z+offset),"link"}end end
  end end
- for _,v in ipairs(links)do add(v.id,v.kind,v.a[1],v.a[2],v.a[3],nil,nil,nil,"metal",0,0,0,v.b,v.group)end
+ for _,q in ipairs(links)do add(q[1],q[2],q[3],nil,"metal",q[5],nil,q[4])end
  return p
 end
+
 function C.cf(v,base,second)
  local pos=second and v.second or v.pos;local r=v.rot
+ if not second and v.basis then return base*CFrame.new(pos[1],pos[2],pos[3],table.unpack(v.basis))end
  return base*CFrame.new(pos[1],pos[2],pos[3])*CFrame.Angles(math.rad(r[1]),math.rad(r[2]),math.rad(r[3]))
 end
 function C.clearPreview()destroy(C.preview);C.preview=nil end
@@ -2928,7 +3135,7 @@ end
 function C.previewInto(parent,base)
  local plan=C.plan();local model=new("Model",{Name="NEBULA_CarPreview"},parent)
  for _,q in ipairs(plan.parts)do
-  local cf=C.cf(q,base);local size=q.size and Vector3.new(table.unpack(q.size))or(q.group=="wheel"and Vector3.new(1,3,3)or Vector3.new(1,0.5,1))
+  local cf=C.cf(q,base);local size=q.size and Vector3.new(table.unpack(q.size))or(q.previewSize and Vector3.new(table.unpack(q.previewSize))or(q.group=="wheel"and Vector3.new(1,3,3)or Vector3.new(1,0.5,1)))
   if q.second then local endpoint=C.cf(q,base,true).Position;local start=cf.Position;size=Vector3.new(q.kind=="Spring"and 0.25 or 0.12,q.kind=="Spring"and 0.25 or 0.12,(endpoint-start).Magnitude);cf=CFrame.lookAt((start+endpoint)*0.5,endpoint)end
   local part=new("Part",{Name=q.id,Size=size,CFrame=cf,Color=Color3.fromRGB(table.unpack(q.color)),Material=Enum.Material.SmoothPlastic,Anchored=true,CanCollide=false,CanTouch=false,CanQuery=false,CastShadow=false},model)
   if q.kind=="GlassBlock"then part.Transparency=0.32 end
@@ -3884,11 +4091,17 @@ action(N.panels.boat,"Гараж · 10 спорткаров",function()A.switchP
 
 
 
+
+
+
+
+
+
 -- BEGIN NEBULA GARAGE UI
 do
  local C=N.Cars
  local p=page("Гараж","Собственные блоковые модели по мотивам спорткаров. Сборка механики экспериментальная; реальная езда в BABFT пока не проверена.")
- local view=new("ViewportFrame",{Name="GarageView",Size=UDim2.new(1,0,0,250),BackgroundColor3=Color3.new(0,0,0),BorderSizePixel=0,Ambient=Color3.fromRGB(175,175,185),LightColor=Color3.fromRGB(245,245,255),LightDirection=Vector3.new(-1,-2,-1)},p);A.place(p,view)
+ local view=new("ViewportFrame",{Name="GarageView",Size=UDim2.new(1,0,0,300),BackgroundColor3=Color3.fromRGB(13,13,15),BorderSizePixel=0,Ambient=Color3.fromRGB(175,175,185),LightColor=Color3.fromRGB(245,245,255),LightDirection=Vector3.new(-1,-2,-1)},p);A.place(p,view)
  local camera=new("Camera",{FieldOfView=37},view);view.CurrentCamera=camera
  local headline=text(p,"",nil,UDim2.new(1,0,0,30),Enum.Font.GothamBold);headline.TextSize=20;A.place(p,headline)
  local details=text(p,"",nil,UDim2.new(1,0,0,66),nil,Color3.fromRGB(160,160,160));details.TextWrapped=true;A.place(p,details)
@@ -3898,7 +4111,7 @@ do
   details.Text="По мотивам "..plan.inspired.." · "..#plan.parts.." деталей\n"..table.concat(bill," · ")
   if draw then
    destroy(C.stage);C.stage=C.previewInto(view,CFrame.new())
-   local angle=math.rad(38+C.turn);camera.CFrame=CFrame.lookAt(Vector3.new(math.cos(angle)*29,16,math.sin(angle)*29),Vector3.new(0,2.5,0))
+   local angle=math.rad(-43+C.turn);camera.CFrame=CFrame.lookAt(Vector3.new(math.cos(angle)*26,11,math.sin(angle)*26),Vector3.new(0,2.5,0))
   end
  end
  for i,d in ipairs(C.catalog)do
@@ -3923,7 +4136,7 @@ do
 end
 -- END NEBULA GARAGE UI
 
-local photoNote=text(N.panels.boat,"Импорт фото до 200×200: открой NEBULA-Photo-Importer.html. Большую схему переноси через Lua импорта, буфер или JSON-файл, минуя текстовое поле. Для реальной постройки нужны свои блоки и BuildingTool / PaintingTool / ScalingTool.",nil,UDim2.new(1,0,0,70),nil,Color3.fromRGB(155,155,155));photoNote.TextWrapped=true;A.place(N.panels.boat,photoNote)
+local photoNote=text(N.panels.boat,"Импорт фото до 200×200: открой NEBULA-Photo-Importer.html. Большую схему переноси через Lua импорта, буфер или JSON-файл, минуя текстовое поле. Клетка 0.1–6 studs; меньше клетка — меньше вся картина, детализацию задают пиксели. Для реальной постройки нужны свои блоки и BuildingTool / PaintingTool / ScalingTool.",nil,UDim2.new(1,0,0,70),nil,Color3.fromRGB(155,155,155));photoNote.TextWrapped=true;A.place(N.panels.boat,photoNote)
 slider(N.panels.boat,"photoBuildSpeed","Скорость постройки фото · ×1–×10",1)
 action(N.panels.boat,"Фото · импортировать из буфера без текстового поля",H.importPhotoClipboard)
 local photoFile=input(N.panels.boat,"NativePhotoFile","Имя JSON в рабочей папке исполнителя, без .json");photoFile.Text="nebula-photo"
@@ -4296,7 +4509,7 @@ toggle(settingsPage,"reduced","Уменьшить анимации","Мгнов�
 local rebind=action(settingsPage,"Бинд меню: RightAlt — изменить",function()A.waitingKey=true;A.status("Нажми новую клавишу; Escape — отмена")end)
 action(settingsPage,"Выключить все модули",A.reset)
 action(settingsPage,"KILL SCRIPT",A.Unload)
-A.keyHint=text(panel,"1.11  /  RightAlt",UDim2.new(0,20,1,-36),UDim2.fromOffset(160,20),nil,Color3.fromRGB(110,110,110));A.keyHint.TextSize=11
+A.keyHint=text(panel,"1.12  / RightAlt",UDim2.new(0,20,1,-36),UDim2.fromOffset(160,20),nil,Color3.fromRGB(110,110,110));A.keyHint.TextSize=11
 function A.tokenize(line)
     local out,buf={},{};local quote=nil
     for n=1,#line do local c=line:sub(n,n)
@@ -4435,7 +4648,7 @@ on(U.InputBegan,function(i,processed)
     if focus then return end
     if A.waitingKey and i.UserInputType==Enum.UserInputType.Keyboard then
         if i.KeyCode==Enum.KeyCode.Escape then A.waitingKey=false;A.status("Смена бинда отменена");return end
-        if i.KeyCode~=Enum.KeyCode.Unknown then S.key=i.KeyCode;A.waitingKey=false;rebind.Text="Бинд меню: "..S.key.Name.." — изменить";A.keyHint.Text="1.11  /  "..S.key.Name;A.status("Новый бинд: "..S.key.Name)end;return
+        if i.KeyCode~=Enum.KeyCode.Unknown then S.key=i.KeyCode;A.waitingKey=false;rebind.Text="Бинд меню: "..S.key.Name.." — изменить";A.keyHint.Text="1.12  / "..S.key.Name;A.status("Новый бинд: "..S.key.Name)end;return
     end
     if i.UserInputType==Enum.UserInputType.Keyboard then
         if S.silent and i.KeyCode==S.key then A.setSilent(false);A.show(true)
@@ -4519,7 +4732,7 @@ A.status("Готово · "..#helpLines.." команд · RightAlt: меню ·
 ]=======]
 function hub.launchControl()
     local control=env.__NEBULA_CONTROL
-    if not control or not control.alive or control.Version~="1.11" then
+    if not control or not control.alive or control.Version~="1.12" then
         if type(loadstring)~="function"then status("Для встроенного Control нужен loadstring");return end
         local fn,err=loadstring(embeddedControlCode,"NEBULA_Control_Embedded")
         if not fn then status("Ошибка сборки Control: "..tostring(err):sub(1,100));return end
@@ -4572,6 +4785,7 @@ action(hubPage,"Закрыть NEBULA Control",function()
     api.Control=nil;status("Control закрыт")
 end)
 -- END NEBULA CONTROL EMBED
+
 
 
 
