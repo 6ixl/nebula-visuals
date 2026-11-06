@@ -477,9 +477,9 @@
     "aircraft": true,
     "experimental": true,
     "bank": "new",
-    "revision": 4,
+    "revision": 5,
     "bill": {
-      "MetalBlock": 2201,
+      "MetalBlock": 2205,
       "PilotSeat": 1,
       "Wedge": 2064,
       "PlasticBlock": 466,

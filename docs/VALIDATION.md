@@ -1,1 +1,1 @@
-6.11-preview.6: syntax, revision 4 geometry, continuous leg/axle coordinate checks, 22 distinct canopy arch facets, complete visible preview, car binding tests and public integrity checks passed. Roblox appearance, actual welds and landing gear behavior remain unverified.
+6.11-preview.7: syntax, revision 5 geometry, continuous leg/axle coordinate checks, 22 distinct canopy arch facets, complete visible preview, car binding tests and public integrity checks passed. Roblox appearance, actual welds and landing gear behavior remain unverified.

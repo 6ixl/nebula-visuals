@@ -1553,7 +1553,7 @@ local hubPage=page("Хаб","Отдельные скрипты: загрузи �
 local hub={busy=false,selection="Мой Lua"}
 -- BEGIN NEBULA CONTROL EMBED
 local embeddedControlCode=[=======[
--- NEBULA CONTROL 1.14-preview.6 | independent client tools | no remote loaders
+-- NEBULA CONTROL 1.14-preview.7 | independent client tools | no remote loaders
 -- RightAlt: menu; F6: fly; F7: noclip; F8: ESP. All modules start disabled.
 local P=game:GetService("Players")
 local R=game:GetService("RunService")
@@ -1564,7 +1564,7 @@ local me=P.LocalPlayer
 assert(me,"NEBULA Control requires a client")
 local env=(getgenv and getgenv())or _G
 if env.__NEBULA_CONTROL and env.__NEBULA_CONTROL.Unload then pcall(env.__NEBULA_CONTROL.Unload)end
-local A={Version="1.14-preview.6",alive=true,connections={},characterConnections={},playerConnections={},props={},esp={},widgets={},pages={},indexed={},commands={},aliases={},history={},waypoints={},selected=nil}
+local A={Version="1.14-preview.7",alive=true,connections={},characterConnections={},playerConnections={},props={},esp={},widgets={},pages={},indexed={},commands={},aliases={},history={},waypoints={},selected=nil}
 env.__NEBULA_CONTROL=A
 local S={esp=false,names=true,health=true,distance=true,boxes=false,tracers=false,throughWalls=true,teamColors=true,teamFilter=false,visibleOnly=false,selectedOnly=false,
     espRange=1500,espSize=13,espHue=0.76,boxMode=1,espThickness=1,offscreen=false,
@@ -3158,11 +3158,13 @@ end
 
 
 
+
+
 -- BEGIN NEW GARAGE BANK
 -- Two independent shape banks. Legacy geometry is preserved; New loads validated data only.
 local oldPlan=C.plan
 C.bank="legacy";C.bankSelections={legacy=1,new=1};C.newCache={};C.newLoadNonce=0
-C.newCatalog={{id="mclaren-720s",name="720S · Papaya ? New",inspired="McLaren 720S",parts=3396,author="_shobh19",legacyBase=1},{id="mclaren-p1",name="P1 · Volcano ? New",inspired="McLaren P1",parts=7926,author="vecarz",legacyBase=2},{id="mclaren-senna",name="Senna · Track ? New",inspired="McLaren Senna",parts=12427,author="Black Snow",legacyBase=3},{id="ferrari-488",name="488 GTB · Rosso ? New",inspired="Ferrari 488 GTB",parts=5862,author="Dev365TH",legacyBase=4},{id="ferrari-sf90-xx",name="SF90 · Stradale ? New",inspired="Ferrari SF90 Stradale",parts=9089,author="Ddiaz Design",legacyBase=5},{id="huracan-evo-rebuilt",name="Huracán EVO · Verde ? New",inspired="Lamborghini Huracán EVO",parts=7912,author="Galaxy Car Showroom",legacyBase=6},{id="porsche-gt3-rs",name="911 GT3 RS · Weissach ? New",inspired="Porsche 911 GT3 RS (992)",parts=9990,author="Black Snow",legacyBase=7},{id="bugatti-chiron",name="Chiron · Atlantic ? New",inspired="Bugatti Chiron",parts=10499,author="DisneyCars",legacyBase=8},{id="koenigsegg-jesko",name="Jesko Attack · Pearl ? New",inspired="Koenigsegg Jesko Attack",parts=4996,author="Ddiaz Design",legacyBase=9},{id="nissan-custom-gtr",name="GT-R R35 · Gunmetal ? New",inspired="Nissan GT-R R35 (2017)",parts=9616,author="Socksthecat",legacyBase=10},{id="abrams-m1a2",name="Abrams · цельная броня / New",inspired="Abrams M1A2 SEPv3",parts=2518,author="6ixl / NEBULA",tank=true},{id="su57",name="Су-57 · New",inspired="Су-57 · оригинальная блоковая интерпретация",parts=4776,author="6ixl / NEBULA",aircraft=true}}
+C.newCatalog={{id="mclaren-720s",name="720S · Papaya ? New",inspired="McLaren 720S",parts=3396,author="_shobh19",legacyBase=1},{id="mclaren-p1",name="P1 · Volcano ? New",inspired="McLaren P1",parts=7926,author="vecarz",legacyBase=2},{id="mclaren-senna",name="Senna · Track ? New",inspired="McLaren Senna",parts=12427,author="Black Snow",legacyBase=3},{id="ferrari-488",name="488 GTB · Rosso ? New",inspired="Ferrari 488 GTB",parts=5862,author="Dev365TH",legacyBase=4},{id="ferrari-sf90-xx",name="SF90 · Stradale ? New",inspired="Ferrari SF90 Stradale",parts=9089,author="Ddiaz Design",legacyBase=5},{id="huracan-evo-rebuilt",name="Huracán EVO · Verde ? New",inspired="Lamborghini Huracán EVO",parts=7912,author="Galaxy Car Showroom",legacyBase=6},{id="porsche-gt3-rs",name="911 GT3 RS · Weissach ? New",inspired="Porsche 911 GT3 RS (992)",parts=9990,author="Black Snow",legacyBase=7},{id="bugatti-chiron",name="Chiron · Atlantic ? New",inspired="Bugatti Chiron",parts=10499,author="DisneyCars",legacyBase=8},{id="koenigsegg-jesko",name="Jesko Attack · Pearl ? New",inspired="Koenigsegg Jesko Attack",parts=4996,author="Ddiaz Design",legacyBase=9},{id="nissan-custom-gtr",name="GT-R R35 · Gunmetal ? New",inspired="Nissan GT-R R35 (2017)",parts=9616,author="Socksthecat",legacyBase=10},{id="abrams-m1a2",name="Abrams · цельная броня / New",inspired="Abrams M1A2 SEPv3",parts=2518,author="6ixl / NEBULA",tank=true},{id="su57",name="Су-57 · New",inspired="Су-57 · оригинальная блоковая интерпретация",parts=4780,author="6ixl / NEBULA",aircraft=true}}
 function C.currentCatalog()return C.bank=="new"and C.newCatalog or C.catalog end
 function C.importNew(value,id)
  assert(type(value)=="table"and value.format=="nebula-vehicle-1"and value.id==id,"Неверный формат новой модели")
@@ -3243,10 +3245,10 @@ function C.loadSelectedNew()
     text=readfile(path)
     if entry.aircraft then
      local parsed,localData=pcall(function()return game:GetService("HttpService"):JSONDecode(text)end)
-     if not parsed or localData.revision~=4 then text=nil end
+     if not parsed or localData.revision~=5 then text=nil end
     end
    end
-   if not text then text=game:HttpGet("https://raw.githubusercontent.com/6ixl/nebula-visuals/v6.11-preview.6/assets/new/"..entry.id..".json")end
+   if not text then text=game:HttpGet("https://raw.githubusercontent.com/6ixl/nebula-visuals/v6.11-preview.7/assets/new/"..entry.id..".json")end
    assert(type(text)=="string"and #text<=16777216,"Файл модели больше 16 МиБ")
    assert(A.alive and C.bank=="new"and nonce==C.newLoadNonce,"Загрузка отменена")
    return game:GetService("HttpService"):JSONDecode(text)
@@ -3816,6 +3818,7 @@ end
 
 
 
+
 -- BEGIN NEBULA NATIVE FIGHTER
 -- Su-57-inspired native BABFT aircraft adapter. No local CFrame flight or fake explosion.
 -- Flight, servo directions and release timing require the deferred Roblox session.
@@ -3834,7 +3837,7 @@ local function beamTo(controller,model)
 end
 local function value(model,name)local v=model and model:FindFirstChild(name);return v and v.Value end
 function F.validate(plan)
- assert(plan.aircraft==true and not plan.tank and plan.id=="su57"and plan.revision==4,"Неподдерживаемая схема самолёта: загрузи обновлённую модель")
+ assert(plan.aircraft==true and not plan.tank and plan.id=="su57"and plan.revision==5,"Неподдерживаемая схема самолёта: загрузи обновлённую модель")
  local ids={};local jets,payloads,glue,delays=0,0,0,0
  for _,q in ipairs(plan.parts)do
   ids[q.id]=q
@@ -3904,7 +3907,11 @@ function F.prepare(plan)
   -- Keep the release rack visibly continuous with the pylon while preserving a
   -- gap to fixed airframe parts. Glue remains the only rigid release bridge.
   local rack=ids["bombRack:"..side]
-  if rack then local bottom=payloadY+.75;local top=7.30;assert(top>bottom,"Glue/payload dimensions do not fit the release rack");rack.pos[2]=(top+bottom)*.5;rack.size[2]=top-bottom end
+  if rack then
+   local bottom=payloadY+.75;local top=7.30;assert(top>bottom,"Glue/payload dimensions do not fit the release rack")
+   rack.pos[2]=(top+bottom)*.5;rack.size[2]=top-bottom;rack.transparency=1
+   for j=0,1 do local rail=ids["bombRackRail:"..side..":"..j];assert(rail,"Missing slim release bracket");rail.pos[2]=rack.pos[2];rail.size[2]=rack.size[2]end
+  end
  end
  plan.bill={};for _,q in ipairs(plan.parts)do plan.bill[q.kind]=(plan.bill[q.kind]or 0)+1 end
  return plan
@@ -4256,6 +4263,11 @@ function C.step(dt,run)
    end end
    run.phase=stiffness and "tuneDamping"or "tuneLength";run.phaseTime=0;return
   elseif run.phase=="tuneLength"then
+   local measuredSpring
+   for _,entry in ipairs(run.models)do if entry.spec.group=="spring"then measuredSpring=entry.model:FindFirstChildWhichIsA("SpringConstraint",true);break end end
+   assert(measuredSpring and measuredSpring.Attachment0 and measuredSpring.Attachment1,"Нет концов пружины")
+   run.tune.freeLength=(measuredSpring.Attachment0.WorldPosition-measuredSpring.Attachment1.WorldPosition).Magnitude
+   assert(finite(run.tune.freeLength)and run.tune.freeLength>.05,"Неверная длина подвески")
    local measuredSpring
    for _,entry in ipairs(run.models)do if entry.spec.group=="spring"then measuredSpring=entry.model:FindFirstChildWhichIsA("SpringConstraint",true);break end end
    assert(measuredSpring and measuredSpring.Attachment0 and measuredSpring.Attachment1,"Нет концов пружины")
@@ -5242,6 +5254,8 @@ action(N.panels.boat,"Гараж · 10 спорткаров",function()A.switchP
 
 
 
+
+
 -- BEGIN NEBULA GARAGE UI
 do
 local C=N.Cars
@@ -5350,7 +5364,7 @@ end
 function C.refreshView(draw)
  local ok,plan=pcall(C.plan)
  if not ok then C.viewPlan=nil;local entry=C.currentCatalog()[C.selected];headline.Text=entry and entry.name or "Выбери модель";details.Text="Данные New ещё не загружены. Нажми «Загрузить модель».";tankControls.Visible=entry and entry.tank==true or false;destroy(C.stage);C.stage=nil;C.refreshBuildUI();return end
- C.viewPlan=plan;headline.Text=plan.name;tankControls.Visible=plan.tank==true or plan.aircraft==true;tankControls.Text=plan.aircraft and C.Fighter.help or C.Tank.help
+ C.viewPlan=plan;headline.Text=plan.name..(plan.aircraft and(" · r"..tostring(plan.revision))or "");tankControls.Visible=plan.tank==true or plan.aircraft==true;tankControls.Text=plan.aircraft and C.Fighter.help or C.Tank.help
  details.Text=(C.bank=="new"and "New"or "Legacy").." · "..plan.livery.."\n"..(plan.tank and "Две шарнирные цепи и интерьер. Испытания отложены."or "Отдельная внешняя геометрия колёс и кресла. Игровые механизмы скрываются инструментом свойств.")..(plan.credit and("\n3D: "..plan.credit.author)or "")
  if draw then
   destroy(C.stage);C.stage=C.previewInto(view,CFrame.new());local angle=math.rad(-43+C.turn);local radius=math.max(26,math.max(plan.length,plan.width,plan.height)*.95);local y=plan.height*.4
@@ -5987,7 +6001,7 @@ A.status("Готово · "..#helpLines.." команд · RightAlt: меню ·
 ]=======]
 function hub.launchControl()
     local control=env.__NEBULA_CONTROL
-    if not control or not control.alive or control.Version~="1.14-preview.6" then
+    if not control or not control.alive or control.Version~="1.14-preview.7" then
         if type(loadstring)~="function"then status("Для встроенного Control нужен loadstring");return end
         local fn,err=loadstring(embeddedControlCode,"NEBULA_Control_Embedded")
         if not fn then status("Ошибка сборки Control: "..tostring(err):sub(1,100));return end
@@ -6040,6 +6054,7 @@ action(hubPage,"Закрыть NEBULA Control",function()
     api.Control=nil;status("Control закрыт")
 end)
 -- END NEBULA CONTROL EMBED
+
 
 
 
