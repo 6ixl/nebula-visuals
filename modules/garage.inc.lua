@@ -472,7 +472,7 @@ function C.loadSelectedNew()
   local ok,result=pcall(function()
    local path="nebula/assets/new/"..entry.id..".json";local text
    if type(readfile)=="function"and type(isfile)=="function"and isfile(path)then text=readfile(path)
-   else text=game:HttpGet("https://raw.githubusercontent.com/6ixl/nebula-visuals/v6.11-preview.2/assets/new/"..entry.id..".json")end
+   else text=game:HttpGet("https://raw.githubusercontent.com/6ixl/nebula-visuals/v6.11-preview.3/assets/new/"..entry.id..".json")end
    assert(type(text)=="string"and #text<=16777216,"Файл модели больше 16 МиБ")
    assert(A.alive and C.bank=="new"and nonce==C.newLoadNonce,"Загрузка отменена")
    return game:GetService("HttpService"):JSONDecode(text)
@@ -1287,6 +1287,74 @@ function C.start()
  run.models={};run.phase="place";run.phaseTime=0;run.sendClock=0;C.last=nil;C.clearPreview();run.wheelSpeed=C.wheelSpeed;run.wheelTorque=C.wheelTorque;C.Build.start(run)
  A.status("Гараж: экспериментальная сборка "..plan.name.." · "..#plan.parts.." деталей. Детали останутся закреплёнными.")
 end
+-- BEGIN NEBULA GARAGE DRIVE
+-- Native seat key bindings shared by all car models.
+do
+local D={};C.Drive=D
+function D.keys()
+ return {Forward=Enum.KeyCode.W.Value,Backward=Enum.KeyCode.S.Value,Left=Enum.KeyCode.A.Value,Right=Enum.KeyCode.D.Value}
+end
+function D.args(models,seat)
+ assert(seat and seat.Parent,"Нет своего водительского кресла")
+ local groups=C.bindingGroups(models);local keys=D.keys();local map={}
+ for action in pairs(groups)do assert(keys[action],"Неизвестное действие колеса: "..action);map[action]=keys[action]end
+ -- Current native BindLocalScript: groups, controller ARRAY, key map,
+ -- disconnect=false, custom seat input=true. Empty keys are not a seat binding.
+ return {groups,{seat},map,false,true}
+end
+function D.verify(models,seat)
+ local groups=C.bindingGroups(models);local keys=D.keys()
+ for action,values in pairs(groups)do for _,value in ipairs(values)do
+  if value.Value~=keys[action]then return false,"Не подтверждена клавиша "..action.." у "..value.Parent.Name end
+ end end
+ local wheels=0
+ for _,entry in ipairs(models)do if entry.spec.group=="wheel"then
+  wheels=wheels+1;local linked=false
+  for _,beam in ipairs(seat:GetChildren())do
+   if beam:IsA("Beam")and beam.Attachment1 and beam.Attachment1.Parent and beam.Attachment1.Parent:IsDescendantOf(entry.model)then linked=true;break end
+  end
+  if not linked then return false,"Нет связи кресла с "..entry.spec.id end
+ end end
+ return wheels==4,wheels==4 and "W/S/A/D подтверждены"or "Нужны четыре колеса"
+end
+function D.rebind()
+ assert(not N.job,"Сначала останови текущую задачу")
+ N.requireGame("boat")
+ local record=C.last;local models=record and record.models;local seat
+ if record then assert(not record.plan.tank and not record.plan.aircraft,"Эта кнопка для машин");for _,entry in ipairs(models)do if entry.spec.group=="seat"then seat=entry.model end end end
+ if not seat then
+  -- After reloading the hub, select only an unambiguous nearby own car.
+  local root=assert(rootOf(me),"Нет персонажа");local blocks=workspace:FindFirstChild("Blocks");local folder=blocks and blocks:FindFirstChild(me.Name)
+  assert(folder,"Нет своей папки блоков");local candidates={}
+  for _,model in ipairs(folder:GetChildren())do local pp=model:FindFirstChild("PPart")
+   if model.Name=="CarSeat"and pp and(pp.Position-root.Position).Magnitude<20 then candidates[#candidates+1]=model end
+  end
+  assert(#candidates==1,"Подойди к одной машине: в радиусе 20 studs должно быть одно своё CarSeat")
+  seat=candidates[1];models={}
+  for _,model in ipairs(folder:GetChildren())do local pp=model:FindFirstChild("PPart")
+   if(model.Name=="FrontWheel"or model.Name=="BackWheel")and pp and(pp.Position-seat.PPart.Position).Magnitude<22 then models[#models+1]={model=model,spec={group="wheel",id=model.Name..":"..#models}}end
+  end
+  assert(#models==4,"Рядом должны быть ровно четыре своих колеса; другие машины отодвинь")
+ end
+ local tool=H.tool("BindTool");local rf=tool and tool:FindFirstChild("RF");assert(rf and rf:IsA("RemoteFunction"),"Нужна отвёртка BindTool")
+ local args=D.args(models,seat);local run=N.prepare("carWheelRepair");run.phaseTime=0;run.models=models
+ run.task=task.spawn(function()
+  local ok,err=pcall(function()
+   humOf(me):EquipTool(tool);task.wait(.15);if not A.alive or N.job~=run then return end
+   assert(rf:InvokeServer(table.unpack(args))~=false,"Сервер отклонил привязку")
+   local message
+   for _=1,25 do
+    if not A.alive or N.job~=run then return end
+    local verified;verified,message=D.verify(models,seat);if verified then return end;task.wait(.1)
+   end
+   error(message or "Клавиши колёс не подтверждены")
+  end)
+  if A.alive and N.job==run then run.task=nil;N.stop(ok and "Привязка W/S/A/D подтверждена. Проверь снятие закрепления и движение в игре."or("Привязка не подтверждена: "..tostring(err)))end
+ end)
+end
+end
+
+-- END NEBULA GARAGE DRIVE
 function C.bindingGroups(models)
  local groups={};local count=0
  for _,entry in ipairs(models)do if entry.spec.group=="wheel"then
@@ -1363,6 +1431,7 @@ function C.audit(record)
   local rotor=rotors[entry.spec.wheelId];assert(rotor,"Нет своего игрового колеса")
   for _,part in ipairs(entry.model:GetDescendants())do if part:IsA("BasePart")then assert(root(part)==rotor,"Колёсный декор не соединён с ротором: "..entry.spec.id)end end
  end end
+ local driveOK,driveError=C.Drive.verify(record.models,seat);assert(driveOK,driveError)
  assert(wheels==4 and springs==4 and links==16,"Неполная ходовая часть")
  return record.plan.name..": 4 связи колёс, 4 пружины и 16 рычагов. Езда не проверена."
 end
@@ -1392,7 +1461,10 @@ function C.step(dt,run)
    for _,entry in ipairs(run.models)do if entry.spec.group=="seat"then seat=entry.model end end
    assert(seat,"Сиденье не найдено")
    -- Live BABFT BindLocalScript uses a controller array, even for one seat.
-   H.invoke(run,run.tools.bind,run.tools.bindRF,{groups,{seat},{},false,false},"tuneStiffness");return
+   H.invoke(run,run.tools.bind,run.tools.bindRF,C.Drive.args(run.models,seat),"wheelBindVerify");return
+  elseif run.phase=="wheelBindVerify"then
+   local seat;for _,entry in ipairs(run.models)do if entry.spec.group=="seat"then seat=entry.model end end
+   local ok=C.Drive.verify(run.models,seat);if ok then run.phase="tuneStiffness";run.phaseTime=0 end;return
   elseif run.phase=="tuneStiffness"or run.phase=="tuneDamping"then
    local springs={};for _,entry in ipairs(run.models)do if entry.spec.group=="spring"then springs[#springs+1]=entry.model end end
    local stiffness=run.phase=="tuneStiffness"
