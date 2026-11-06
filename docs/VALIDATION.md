@@ -1,1 +1,1 @@
-6.11-preview.5: Luau compilation, revision 3 geometry, closure panels, axle/hub alignment, fixed/releasable pylon clearance, visible preview completeness, offline car binding tests and public file integrity passed. Roblox appearance, actual welds, flight and release remain unverified.
+6.11-preview.6: syntax, revision 4 geometry, continuous leg/axle coordinate checks, 22 distinct canopy arch facets, complete visible preview, car binding tests and public integrity checks passed. Roblox appearance, actual welds and landing gear behavior remain unverified.

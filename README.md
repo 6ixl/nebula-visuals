@@ -1,5 +1,10 @@
 # NEBULA 6.11 preview
 
+## Preview 6
+
+Исправлен разрыв между стойками и осями шасси; кабина получила округлый профиль. Проверка в Roblox ещё не проведена.
+
+
 Roblox visual hub, Control and experimental Build a Boat garage.
 
 ```lua
