@@ -113,6 +113,10 @@ function T.audit(record)
  assert(turretRoot~=bodyRoot and gunRoot~=bodyRoot and gunRoot~=turretRoot and hatchRoot~=bodyRoot,"Подвижный узел жёстко сварен с корпусом")
  local roots={body=bodyRoot,seat=bodyRoot,turret=turretRoot,gun=gunRoot,hatch=hatchRoot}
  for part,spec in pairs(allowed)do if roots[spec.group]then assert(root(part)==roots[spec.group],"Не закреплена панель/деталь: "..spec.id)end end
+ for part,spec in pairs(allowed)do if spec.group=="tankWheelSkin"then
+  local motor=assert(ids[spec.driveId],"Missing roadwheel drive");local joint=assert(motor:FindFirstChildWhichIsA("HingeConstraint",true))
+  assert(joint.Attachment1 and root(part)==root(joint.Attachment1.Parent)and root(part)~=bodyRoot,"Roadwheel skin is detached or welded to hull")
+ end end
  local seat=assert(ids.driver:FindFirstChildWhichIsA("VehicleSeat",true),"Нет настоящего водительского кресла")
  local function actuator(model,expectedBase,expectedOutput,mode)
   local constraint=model:FindFirstChildWhichIsA("HingeConstraint",true)

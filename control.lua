@@ -1,4 +1,4 @@
--- NEBULA CONTROL 1.14-preview.1 | independent client tools | no remote loaders
+-- NEBULA CONTROL 1.14-preview.2 | independent client tools | no remote loaders
 -- RightAlt: menu; F6: fly; F7: noclip; F8: ESP. All modules start disabled.
 local P=game:GetService("Players")
 local R=game:GetService("RunService")
@@ -9,7 +9,7 @@ local me=P.LocalPlayer
 assert(me,"NEBULA Control requires a client")
 local env=(getgenv and getgenv())or _G
 if env.__NEBULA_CONTROL and env.__NEBULA_CONTROL.Unload then pcall(env.__NEBULA_CONTROL.Unload)end
-local A={Version="1.14-preview.1",alive=true,connections={},characterConnections={},playerConnections={},props={},esp={},widgets={},pages={},indexed={},commands={},aliases={},history={},waypoints={},selected=nil}
+local A={Version="1.14-preview.2",alive=true,connections={},characterConnections={},playerConnections={},props={},esp={},widgets={},pages={},indexed={},commands={},aliases={},history={},waypoints={},selected=nil}
 env.__NEBULA_CONTROL=A
 local S={esp=false,names=true,health=true,distance=true,boxes=false,tracers=false,throughWalls=true,teamColors=true,teamFilter=false,visibleOnly=false,selectedOnly=false,
     espRange=1500,espSize=13,espHue=0.76,boxMode=1,espThickness=1,offscreen=false,
@@ -213,7 +213,7 @@ local function slider(p,key,title,step)
     local rail=new("Frame",{Position=UDim2.new(0,0,0.5,-1),Size=UDim2.new(1,0,0,2),BackgroundColor3=Color3.fromRGB(45,45,45),BorderSizePixel=0},hit)
     local fill=new("Frame",{Size=UDim2.new(),BackgroundColor3=white,BorderSizePixel=0},rail)
     local dot=new("Frame",{AnchorPoint=Vector2.new(0.5,0.5),Size=UDim2.fromOffset(10,10),BackgroundColor3=white,BorderSizePixel=0},rail);round(dot,5)
-    A.widgets[key]=function()local t=(S[key]-lo)/(hi-lo);fill.Size=UDim2.fromScale(t,1);dot.Position=UDim2.fromScale(t,0.5);value.Text=string.format(step<1 and "%.2f"or"%.0f",S[key])end
+    local previousWidget=A.widgets[key];A.widgets[key]=function()if previousWidget then previousWidget()end;local t=(S[key]-lo)/(hi-lo);fill.Size=UDim2.fromScale(t,1);dot.Position=UDim2.fromScale(t,0.5);value.Text=string.format(step<1 and "%.2f"or"%.0f",S[key])end
     local function update(x)local t=math.clamp((x-hit.AbsolutePosition.X)/math.max(1,hit.AbsoluteSize.X),0,1);A.Set(key,math.clamp(lo+math.floor(t*(hi-lo)/step+0.5)*step,lo,hi))end
     on(hit.InputBegan,function(i)if i.UserInputType==Enum.UserInputType.MouseButton1 or i.UserInputType==Enum.UserInputType.Touch then A.dragSlider={input=i,update=update};update(i.Position.X)end end)
     A.widgets[key]();index(f,p,title,"",key)
@@ -1326,7 +1326,7 @@ function C.plan(which,paint,livery,accent)
  end
  for k,z in ipairs({front,0,rear})do for _,s in ipairs({-1,1})do local top=body(z/l+.5,s*.4);beam("skinSupport"..s..":"..k,V(top[1],1.35,z),V(top[1],top[2]-.07,z),.25,"metal",.25,"MetalBlock")end end
  -- Curved double-curvature deck: authored shoulder and centre heights vary separately.
- local long,across=64,10
+ local long,across=C.bank=="new"and 72 or 64,C.bank=="new"and 12 or 10
  local function skinTone(t,u,tone)
   local x=math.abs(u)
   if style==2 and x>.06 and x<.22 then return "accent"end
@@ -1590,17 +1590,22 @@ function C.plan(which,paint,livery,accent)
  return p
 end
 
+
+
+
+
+
 -- BEGIN NEW GARAGE BANK
 -- Two independent shape banks. Legacy geometry is preserved; New loads validated data only.
 local oldPlan=C.plan
 C.bank="legacy";C.bankSelections={legacy=1,new=1};C.newCache={};C.newLoadNonce=0
-C.newCatalog={{id="mclaren-720s",name="McLaren 720S",inspired="McLaren 720S",parts=3396,author="_shobh19"},{id="mclaren-p1",name="McLaren P1",inspired="McLaren P1",parts=7926,author="vecarz"},{id="mclaren-senna",name="McLaren Senna",inspired="McLaren Senna",parts=12427,author="Black Snow"},{id="ferrari-488",name="Ferrari 488 Pista Widebody",inspired="Ferrari 488 Pista Widebody",parts=5862,author="Dev365TH"},{id="ferrari-sf90-xx",name="Ferrari SF90 XX Stradale",inspired="Ferrari SF90 XX Stradale",parts=9089,author="Ddiaz Design"},{id="huracan-evo-rebuilt",name="Lamborghini Huracan EVO 2019",inspired="Lamborghini Huracan EVO 2019",parts=7912,author="Galaxy Car Showroom"},{id="porsche-gt3-rs",name="Porsche GT3 RS",inspired="Porsche GT3 RS",parts=9990,author="Black Snow"},{id="bugatti-chiron",name="Bugatti Chiron Profilée",inspired="Bugatti Chiron Profilée",parts=10499,author="DisneyCars"},{id="koenigsegg-jesko",name="Koenigsegg Jesko 2020",inspired="Koenigsegg Jesko 2020",parts=4996,author="Ddiaz Design"},{id="nissan-custom-gtr",name="Nissan GT-R Custom 2017",inspired="Nissan GT-R Custom 2017",parts=9616,author="Socksthecat"},{id="abrams-m1a2",name="Abrams M1A2 SEPv3 · New",inspired="Abrams M1A2 SEPv3",parts=4372,author="dannzjs",tank=true}}
+C.newCatalog={{id="mclaren-720s",name="720S · Papaya ? New",inspired="McLaren 720S",parts=3396,author="_shobh19",legacyBase=1},{id="mclaren-p1",name="P1 · Volcano ? New",inspired="McLaren P1",parts=7926,author="vecarz",legacyBase=2},{id="mclaren-senna",name="Senna · Track ? New",inspired="McLaren Senna",parts=12427,author="Black Snow",legacyBase=3},{id="ferrari-488",name="488 GTB · Rosso ? New",inspired="Ferrari 488 GTB",parts=5862,author="Dev365TH",legacyBase=4},{id="ferrari-sf90-xx",name="SF90 · Stradale ? New",inspired="Ferrari SF90 Stradale",parts=9089,author="Ddiaz Design",legacyBase=5},{id="huracan-evo-rebuilt",name="Huracán EVO · Verde ? New",inspired="Lamborghini Huracán EVO",parts=7912,author="Galaxy Car Showroom",legacyBase=6},{id="porsche-gt3-rs",name="911 GT3 RS · Weissach ? New",inspired="Porsche 911 GT3 RS (992)",parts=9990,author="Black Snow",legacyBase=7},{id="bugatti-chiron",name="Chiron · Atlantic ? New",inspired="Bugatti Chiron",parts=10499,author="DisneyCars",legacyBase=8},{id="koenigsegg-jesko",name="Jesko Attack · Pearl ? New",inspired="Koenigsegg Jesko Attack",parts=4996,author="Ddiaz Design",legacyBase=9},{id="nissan-custom-gtr",name="GT-R R35 · Gunmetal ? New",inspired="Nissan GT-R R35 (2017)",parts=9616,author="Socksthecat",legacyBase=10},{id="abrams-m1a2",name="Abrams · цельная броня / New",inspired="Abrams M1A2 SEPv3",parts=2518,author="6ixl / NEBULA",tank=true},{id="su57",name="Су-57 · New",inspired="Су-57 · оригинальная блоковая интерпретация",parts=4141,author="6ixl / NEBULA",aircraft=true}}
 function C.currentCatalog()return C.bank=="new"and C.newCatalog or C.catalog end
 function C.importNew(value,id)
  assert(type(value)=="table"and value.format=="nebula-vehicle-1"and value.id==id,"Неверный формат новой модели")
  assert(type(value.parts)=="table"and #value.parts>0 and #value.parts<=30000,"Неверное количество деталей")
- local allowed={Wedge=true,PlasticBlock=true,MetalBlock=true,GlassBlock=true,FrontWheel=true,BackWheel=true,Spring=true,Bar=true,CarSeat=true,Motor=true,Servo=true,Hinge=true,Cannon=true}
- local groups={body=true,carrier=true,wheel=true,seat=true,spring=true,link=true,track=true,drive=true,turret=true,gun=true,hatch=true,turretMount=true,gunMount=true,hatchMount=true};local ids,bill={},{}
+ local allowed={Wedge=true,PlasticBlock=true,MetalBlock=true,GlassBlock=true,FrontWheel=true,BackWheel=true,Spring=true,Bar=true,CarSeat=true,Motor=true,Servo=true,Hinge=true,Cannon=true,PilotSeat=true,JetTurbine=true,Glue=true,SticksOfTNT=true,Delay=true}
+ local groups={tankWheelSkin=true,body=true,carrier=true,wheel=true,seat=true,spring=true,link=true,track=true,drive=true,turret=true,gun=true,hatch=true,turretMount=true,gunMount=true,hatchMount=true,airframe=true,pilot=true,jet=true,flightMount=true,flightSurface=true,canopy=true,gear=true,landingWheel=true,airWheelSkin=true,bomb=true,bombMount=true};local ids,bill={},{}
  local function vector(t,count,lo,hi)
   assert(type(t)=="table"and #t==count,"Неверный вектор модели")
   for _,v in ipairs(t)do assert(finite(v)and v>=lo and v<=hi,"Координата/размер вне предела")end
@@ -1621,15 +1626,22 @@ function C.importNew(value,id)
   bill[q.kind]=(bill[q.kind]or 0)+1
  end
  assert(ids.spine and ids.driver,"Нет каркаса или водительского сиденья")
- if value.tank then assert(C.Tank,"Модуль танка отсутствует");C.Tank.validate(value)else
-  for _,q in ipairs(value.parts)do assert(q.kind~="Motor"and q.kind~="Servo"and q.kind~="Hinge"and q.kind~="Cannon","Механизм танка в автомобильной схеме")end
+ if value.aircraft then assert(C.Fighter,"Модуль самолёта отсутствует");C.Fighter.validate(value)
+ elseif value.tank then assert(C.Tank,"Модуль танка отсутствует");C.Tank.validate(value)else
+  for _,q in ipairs(value.parts)do assert(q.kind~="Motor"and q.kind~="Servo"and q.kind~="Hinge"and q.kind~="Cannon"and q.kind~="PilotSeat"and q.kind~="JetTurbine"and q.kind~="Glue"and q.kind~="SticksOfTNT"and q.kind~="Delay","Механизм другой техники в автомобильной схеме")end
  end
  value.bill=bill;value.bank="new";value.disableSkinCollision=true
  C.newCache={[id]=value};return value
 end
 function C.plan(which,paint,livery,accent)
  if C.bank~="new"then return oldPlan(which,paint,livery,accent)end
- local entry=assert(C.newCatalog[which or C.selected],"Нет новой модели");local raw=assert(C.newCache[entry.id],"Сначала загрузи выбранную New-модель")
+ local entry=assert(C.newCatalog[which or C.selected],"Нет новой модели")
+ if entry.legacyBase then
+  local p=oldPlan(entry.legacyBase,paint,livery,accent);p.id=entry.id;p.bank="new";p.name=entry.name;p.revision=4
+  p.inspired=C.catalog[entry.legacyBase].inspired;p.credit={author="6ixl / NEBULA",license="Original profile geometry"};p.qualityMode="refined-legacy-profiles"
+  return p
+ end
+ local raw=assert(C.newCache[entry.id],"Сначала загрузи выбранную New-модель")
  local p={};for key,value in pairs(raw)do if key~="parts"then p[key]=value end end;p.parts={};p.livery=C.liveries[livery or C.livery]or "Исходная окраска"
  for i,q in ipairs(raw.parts)do
   local copy={};for key,value in pairs(q)do copy[key]=value end
@@ -1657,6 +1669,7 @@ end
 function C.loadSelectedNew()
  assert(C.bank=="new"and not N.job,"Выбери New и останови сборку")
  local entry=assert(C.newCatalog[C.selected],"Нет модели")
+ if entry.legacyBase then C.cancelNewLoad();if C.refreshView then C.refreshView(true)end;return end
  if C.newCache[entry.id]then if C.refreshView then C.refreshView(true)end;return end
  C.cancelNewLoad();local nonce=C.newLoadNonce;C.loading=true
  A.status("Загрузка New: "..entry.name..". Это данные геометрии, не сторонний Lua.")
@@ -1664,7 +1677,7 @@ function C.loadSelectedNew()
   local ok,result=pcall(function()
    local path="nebula/assets/new/"..entry.id..".json";local text
    if type(readfile)=="function"and type(isfile)=="function"and isfile(path)then text=readfile(path)
-   else text=game:HttpGet("https://raw.githubusercontent.com/6ixl/nebula-visuals/v6.11-preview.1/assets/new/"..entry.id..".json")end
+   else text=game:HttpGet("https://raw.githubusercontent.com/6ixl/nebula-visuals/v6.11-preview.2/assets/new/"..entry.id..".json")end
    assert(type(text)=="string"and #text<=16777216,"Файл модели больше 16 МиБ")
    assert(A.alive and C.bank=="new"and nonce==C.newLoadNonce,"Загрузка отменена")
    return game:GetService("HttpService"):JSONDecode(text)
@@ -1678,9 +1691,6 @@ function C.loadSelectedNew()
 end
 
 -- END NEW GARAGE BANK
-
-
-
 -- BEGIN NEBULA GARAGE DETAIL
 -- Presentation geometry and native-mechanism alignment shared by Legacy and New.
 do
@@ -1713,11 +1723,13 @@ function D.materials(plan)
 end
 function D.prepare(raw)
  local p=copy(raw)
+ if p.aircraft then C.Fighter.prepare(p);D.materials(p);return p end
  if p.tank then
   local seats={}
   for _,q in ipairs(p.parts)do
    if q.group=="track"and not q.id:match(":shoe$")then q.transparency=1 end
    if q.id:match("^skinSupport:")then q.transparency=1 end
+   if q.kind=="Cannon"or q.group=="drive"then q.transparency=1 end
    if q.kind=="CarSeat"then
     q.transparency=1;q.noCollide=true
     local x,y,z=q.pos[1],q.pos[2]-2,q.pos[3]-.1
@@ -1817,6 +1829,7 @@ function D.prepare(raw)
 end
 function D.sit()
  assert(not N.job and C.last,"Сначала заверши сборку")
+ if C.last.plan.aircraft then return C.Fighter.sit()end
  if C.last.plan.tank then return C.Tank.sit()end
  local model;for _,entry in ipairs(C.last.models)do if entry.spec.id=="driver"then model=entry.model;break end end
  assert(model and model.Parent==C.last.folder,"Нет своего водительского кресла")
@@ -1840,10 +1853,15 @@ local function alpha(model)
  for _,p in ipairs(model:GetDescendants())do if p:IsA("BasePart")then value=math.min(value,p.Transparency)end end
  return value
 end
+X.transparency=alpha
 local function read(model,property)
  if property=="Transparency"then return alpha(model)
  elseif property=="Collision"then local p=model:FindFirstChild("PPart");return p and p.CanCollide
  elseif property=="Wheel speed"then local value=model:FindFirstChild("MaxSpeed");return value and value.Value
+ elseif property=="Jet speed"then local value=model:FindFirstChild("MaxSpeed");return value and value.Value
+ elseif property=="Jet force"then local value=model:FindFirstChild("MaxForce");return value and value.Value
+ elseif property=="Delay time"then local value=model:FindFirstChild("WaitDuration");return value and value.Value
+ elseif property=="Servo angle"then local value=model:FindFirstChild("TargetAngle");return value and value.Value
  elseif property=="Wheel torque"then local h=model:FindFirstChildWhichIsA("HingeConstraint",true);return h and h.MotorMaxTorque end
 end
 function X.queue(run)
@@ -1858,6 +1876,12 @@ function X.queue(run)
  end
  batches(collisions,"Collision",false);batches(hidden,"Transparency",1);batches(glass,"Transparency",.5)
  batches(wheels,"Wheel speed",run.wheelSpeed);batches(wheels,"Wheel torque",run.wheelTorque)
+ for _,entry in ipairs(run.models)do local q=entry.spec
+  if q.jetSpeed then batches({entry.model},"Jet speed",q.jetSpeed)end
+  if q.jetForce then batches({entry.model},"Jet force",q.jetForce)end
+  if q.servoAngle then batches({entry.model},"Servo angle",q.servoAngle)end
+  if q.delaySeconds then batches({entry.model},"Delay time",q.delaySeconds)end
+ end
  return queue
 end
 function X.step(run)
@@ -1881,8 +1905,8 @@ function X.step(run)
    batch[#batch+1]=model
    local expected=item.goal
    if item.property=="Transparency"then expected=current>=.99 and 0 or math.min(1,current+.25)
-   elseif item.property=="Wheel speed"or item.property=="Wheel torque"then
-    local cycle=item.property=="Wheel speed"and speedCycle or torqueCycle;local position
+   elseif item.property=="Wheel speed"or item.property=="Wheel torque"or item.property=="Jet speed"or item.property=="Jet force"or item.property=="Servo angle"then
+    local cycle=item.property=="Wheel speed"and speedCycle or item.property=="Wheel torque"and torqueCycle or item.property=="Jet speed"and {100,50,25,10,5}or item.property=="Jet force"and {100000,1000000,10000000,100000000,1000000000}or {45,20,5,90,75,60};local position
     for i,value in ipairs(cycle)do if math.abs(value-current)<.01 then position=i;break end end
     assert(position,"Неизвестная настройка колеса: "..tostring(current));expected=cycle[position%#cycle+1]
    end
@@ -1892,13 +1916,16 @@ function X.step(run)
  if #batch==0 then advance();return end
  item.cycles=item.cycles+1;assert(item.cycles<=12,"Свойство не достигло заданного значения: "..item.property)
  local args={item.property,batch}
- if item.property=="Collision"then args[3]=false elseif item.property=="Transparency"then args[3]=.25 end
+ if item.property=="Collision"then args[3]=false elseif item.property=="Transparency"then args[3]=.25 elseif item.property=="Delay time"then args[3]=item.goal end
  H.invoke(run,run.tools.props,run.tools.propsRF,args,"propertiesVerify")
 end
 function X.audit(record)
  for _,entry in ipairs(record.models)do local q=entry.spec
   if q.noCollide then assert(read(entry.model,"Collision")==false,"Коллизия не отключена: "..q.id)end
   if q.transparency then local value=read(entry.model,"Transparency");assert(finite(value)and math.abs(value-q.transparency)<.011,"Не подтверждена прозрачность: "..q.id)end
+  for name,property in pairs({jetSpeed="Jet speed",jetForce="Jet force",servoAngle="Servo angle",delaySeconds="Delay time"})do
+   if q[name]then local current=read(entry.model,property);assert(finite(current)and math.abs(current-q[name])<.01,"Не подтверждено свойство "..property..": "..q.id)end
+  end
   if q.group=="wheel"then
    assert(read(entry.model,"Wheel speed")==record.wheelSpeed and read(entry.model,"Wheel torque")==record.wheelTorque,"Не подтверждены скорость/момент колеса")
    local collider=entry.model:FindFirstChild("InvisPart",true)or entry.model:FindFirstChild("WheelCollider",true)
@@ -2017,7 +2044,7 @@ function C.previewWorld()
  A.status("Локальное превью; это не серверная машина. Сборка — отдельной кнопкой.")
 end
 function C.check()
- N.requireGame("boat");local plan=C.plan();local tools=H.buildTools()
+ N.requireGame("boat");local plan=C.plan();if plan.aircraft then C.Fighter.checkTemplates(plan)end;local tools=H.buildTools()
  local bind=H.tool("BindTool");local props=H.tool("PropertiesTool")
  tools.bind=bind;tools.bindRF=bind and bind:FindFirstChild("RF");tools.props=props;tools.propsRF=props and props:FindFirstChild("SetPropertieRF")
  assert(tools.bindRF and tools.bindRF:IsA("RemoteFunction"),"Нужна отвёртка BindTool.RF")
@@ -2029,6 +2056,7 @@ function C.check()
  local blocks=workspace:FindFirstChild("Blocks");local folder=blocks and blocks:FindFirstChild(me.Name);assert(folder,"Собственная папка Blocks не загружена")
  return plan,tools,zone,folder,data
 end
+
 
 -- BEGIN NEBULA NATIVE TANK
 -- NEBULA native tank extension. Embedded in Garage, not an external executor loader.
@@ -2146,6 +2174,10 @@ function T.audit(record)
  assert(turretRoot~=bodyRoot and gunRoot~=bodyRoot and gunRoot~=turretRoot and hatchRoot~=bodyRoot,"Подвижный узел жёстко сварен с корпусом")
  local roots={body=bodyRoot,seat=bodyRoot,turret=turretRoot,gun=gunRoot,hatch=hatchRoot}
  for part,spec in pairs(allowed)do if roots[spec.group]then assert(root(part)==roots[spec.group],"Не закреплена панель/деталь: "..spec.id)end end
+ for part,spec in pairs(allowed)do if spec.group=="tankWheelSkin"then
+  local motor=assert(ids[spec.driveId],"Missing roadwheel drive");local joint=assert(motor:FindFirstChildWhichIsA("HingeConstraint",true))
+  assert(joint.Attachment1 and root(part)==root(joint.Attachment1.Parent)and root(part)~=bodyRoot,"Roadwheel skin is detached or welded to hull")
+ end end
  local seat=assert(ids.driver:FindFirstChildWhichIsA("VehicleSeat",true),"Нет настоящего водительского кресла")
  local function actuator(model,expectedBase,expectedOutput,mode)
   local constraint=model:FindFirstChildWhichIsA("HingeConstraint",true)
@@ -2214,6 +2246,232 @@ end
 end
 
 -- END NEBULA NATIVE TANK
+-- BEGIN NEBULA NATIVE FIGHTER
+-- Su-57-inspired native BABFT aircraft adapter. No local CFrame flight or fake explosion.
+-- Flight, servo directions and release timing require the deferred Roblox session.
+do
+local F={clock=0};C.Fighter=F
+F.help="R — игровые двигатели. Управление полётом — штатное PilotSeat. C — фонарь (удерживать), G — шасси (удерживать). W/S и A/D связаны с рулями. Z/X — левый/правый динамитный подвес с игровой задержкой 3 с."
+local function native(kind)
+ local folder=game:GetService("ReplicatedStorage"):FindFirstChild("BuildingParts");return folder and folder:FindFirstChild(kind)
+end
+local function pp(model)return model and(model:FindFirstChild("PPart")or model.PrimaryPart)end
+local function seatOf(model)return model and(model:FindFirstChildWhichIsA("VehicleSeat",true)or model:FindFirstChildWhichIsA("Seat",true))end
+local function map(record)local result={};for _,e in ipairs(record.models)do result[e.spec.id]=e.model end;return result end
+local function beamTo(controller,model)
+ for _,v in ipairs(controller:GetChildren())do if v:IsA("Beam")and v.Attachment1 and v.Attachment1.Parent and v.Attachment1.Parent:IsDescendantOf(model)then return true end end
+ return false
+end
+local function value(model,name)local v=model and model:FindFirstChild(name);return v and v.Value end
+function F.validate(plan)
+ assert(plan.aircraft==true and not plan.tank and plan.id=="su57"and plan.revision==1,"Неподдерживаемая схема самолёта")
+ local ids={};local jets,payloads,glue,delays=0,0,0,0
+ for _,q in ipairs(plan.parts)do
+  ids[q.id]=q
+  if q.kind=="JetTurbine"then jets=jets+1 end
+  if q.kind=="SticksOfTNT"then payloads=payloads+1 end
+  if q.kind=="Glue"then glue=glue+1 end
+  if q.kind=="Delay"then delays=delays+1 end
+  if q.kind=="Glue"or q.kind=="SticksOfTNT"or q.kind=="Delay"or q.group=="bomb"then assert(q.bombSide=="left"or q.bombSide=="right","Не указан подвес")end
+  if q.kind=="Servo"then assert(type(q.role)=="string"and #q.role<40,"Нет роли сервопривода")end
+ end
+ assert(ids.spine and ids.driver and ids.driver.kind=="PilotSeat","Нужен штатный PilotSeat")
+ assert(jets==2 and payloads==2 and glue==2 and delays==2,"Неполные двигатели/подвесы")
+ for _,role in ipairs({"canopy","gear:front","gear:left","gear:right","aileron:-1","aileron:1","elevator:-1","elevator:1","rudder:-1","rudder:1"})do assert(ids["servo:"..role],"Нет сервопривода: "..role)end
+end
+function F.prepare(plan)
+ local ids={};for _,q in ipairs(plan.parts)do ids[q.id]=q end
+ local function box(id,pos,size,group,extra)
+  local q={id=id,kind="MetalBlock",pos=pos,size=size,color={58,62,67},rot={0,0,0},group=group,noCollide=true,transparency=1}
+  for k,v in pairs(extra or {})do q[k]=v end;plan.parts[#plan.parts+1]=q;ids[id]=q;return q
+ end
+ local seatTemplate=native("PilotSeat");local seatPrimary=pp(seatTemplate);local seat=seatOf(seatTemplate)
+ if seatPrimary and seat then
+  local offset=seatPrimary.CFrame:ToObjectSpace(seat.CFrame).Position
+  ids.driver.pos={-offset.X,10-offset.Y,-13.5-offset.Z}
+  local bottom=ids.driver.pos[2]-seatPrimary.Size.Y*.5
+  if bottom>9.35+.05 then box("pilotMount",{ids.driver.pos[1],(bottom+9.35)*.5,ids.driver.pos[3]},{1.2,bottom-9.35,1.2},"airframe")end
+ end
+ for _,q in ipairs(plan.parts)do
+  if q.kind=="JetTurbine"then local source=pp(native(q.kind));q.pos[2]=9.6+(source and source.Size.Y or 4)*.5 end
+ end
+ local servos={};for _,q in ipairs(plan.parts)do if q.kind=="Servo"then servos[#servos+1]=q end end
+ for _,q in ipairs(servos)do
+  local source=native("Servo");local base=pp(source);local output=source and source:FindFirstChild("Part")
+  local cf=C.cf(q,CFrame.new());local baseHalfY
+  if base then local m={cf:GetComponents()};baseHalfY=(math.abs(m[7])*base.Size.X+math.abs(m[8])*base.Size.Y+math.abs(m[9])*base.Size.Z)*.5 else baseHalfY=q.role:match("^rudder")and .5 or 1 end
+  local bottom=q.pos[2]-baseHalfY
+  box("servoTie:"..q.role,{0,9.35,q.pos[3]},{math.max(4,math.abs(q.pos[1])*2+2),.5,1},"airframe")
+  if bottom>9.65 then box("servoPost:"..q.role,{q.pos[1],(bottom+9.6)*.5,q.pos[3]},{.5,bottom-9.6,.5},"airframe")end
+  local outCF=base and output and cf*base.CFrame:ToObjectSpace(output.CFrame)or cf*CFrame.new(-1.5,1,0)
+  local size=output and output.Size or Vector3.new(3,1,2);local m={outCF:GetComponents()}
+  local halfZ=(math.abs(m[10])*size.X+math.abs(m[11])*size.Y+math.abs(m[12])*size.Z)*.5
+  local group=q.role=="canopy"and "canopy"or q.role:match("^gear:")and "gear"or "flightSurface"
+  local root=ids["frame:"..q.role]
+  local target={outCF.Position.X,outCF.Position.Y,outCF.Position.Z-halfZ-.2}
+  if root then root.pos=target else root=box("frame:"..q.role,target,{.8,.4,.4},group,{role=q.role})end
+  -- A hidden rigid adapter connects the servo output frame to the authored surface.
+  local anchor
+  if q.role=="canopy"then anchor={0,12.5,-6.4}
+  elseif q.role:match("^gear:")then anchor={q.role=="gear:front"and 0 or q.role=="gear:left"and -4.8 or 4.8,9.5,q.role=="gear:front"and -21.2 or 6.8}
+  else local side=tonumber(q.role:match(":(-?%d+)$"));anchor={side*(q.role:match("^aileron")and 14 or q.role:match("^elevator")and 7 or 5.5),10,q.role:match("^aileron")and 17 or q.role:match("^elevator")and 25 or 28}end
+  box("surfaceAnchor:"..q.role,anchor,{.6,.4,.6},group,{role=q.role})
+  local previous={target[1],target[2],target[3]}
+  for axis=1,3 do
+   local distance=anchor[axis]-previous[axis]
+   if math.abs(distance)>.025 then local centre={previous[1],previous[2],previous[3]};centre[axis]=(previous[axis]+anchor[axis])*.5;local extent={.3,.3,.3};extent[axis]=math.abs(distance)+.3;box("surfaceAdapter:"..q.role..":"..axis,centre,extent,group,{role=q.role});previous[axis]=anchor[axis]end
+  end
+ end
+ for _,side in ipairs({"left","right"})do
+  local glueQ,payload,delay=ids["bombGlue:"..side],ids["bombPayload:"..side],ids["bombDelay:"..side]
+  local glueSize=pp(native("Glue"));local payloadSize=pp(native("SticksOfTNT"));local delaySize=pp(native("Delay"))
+  local gy=glueSize and glueSize.Size.Y or 2;local py=payloadSize and payloadSize.Size.Y or 2
+  glueQ.pos[2]=7.5-gy*.5;local payloadY=7.5-gy-py*.5;local delta=payloadY-4.5
+  for _,q in ipairs(plan.parts)do if q.bombSide==side and q.group=="bomb"then q.pos[2]=q.pos[2]+delta end end
+  payload.pos[2]=payloadY;delay.pos[2]=payloadY
+  delay.pos[3]=payload.pos[3]-(payloadSize and payloadSize.Size.Z or 2)*.5-(delaySize and delaySize.Size.Z or 2)*.5
+  ids["bombFrame:"..side].pos[2]=payloadY-py*.5-.2
+ end
+ plan.bill={};for _,q in ipairs(plan.parts)do plan.bill[q.kind]=(plan.bill[q.kind]or 0)+1 end
+ return plan
+end
+function F.checkTemplates(plan)
+ F.validate(plan)
+ for _,kind in ipairs({"PilotSeat","JetTurbine","Servo","BackWheel","Glue","SticksOfTNT","Delay"})do local model=native(kind);assert(model and pp(model),"Игра не предоставляет "..kind)end
+ assert(seatOf(native("PilotSeat")),"В PilotSeat нет настоящего Seat/VehicleSeat")
+ for _,kind in ipairs({"JetTurbine","Glue","SticksOfTNT","Delay"})do
+  local found=false
+  for _,v in ipairs(native(kind):GetChildren())do if v.Name:sub(1,4)=="Bind"and v:FindFirstChild("ActionName")then found=true end end
+  assert(found,"Нет игровых привязок у "..kind.."; сборка не начата")
+ end
+end
+local function commands(record)
+ local ids=map(record);local queue={}
+ local function bind(models,controller,keys,mode)
+  local groups={}
+  for _,model in ipairs(models)do local found=0
+   for _,v in ipairs(model:GetChildren())do local action=v:FindFirstChild("ActionName")
+    if v.Name:sub(1,4)=="Bind"and action then
+     assert(mode==false or keys[action.Value]or keys.any,"Неизвестная команда механизма: "..tostring(action.Value))
+     groups[action.Value]=groups[action.Value]or {};table.insert(groups[action.Value],v);found=found+1
+    end
+   end
+   assert(found>0,"Нет Bind/ActionName у "..model.Name)
+  end
+  local explicit={};if mode~=false then for action in pairs(groups)do explicit[action]=Enum.KeyCode[keys[action]or keys.any].Value end end
+  queue[#queue+1]={models=models,controller=controller,groups=groups,keys=explicit,custom=mode~=false}
+ end
+ local pilot=ids.driver
+ bind({ids["jet:-1"],ids["jet:1"]},pilot,{any="R"})
+ bind({ids["servo:canopy"]},pilot,{Left="V",Right="C"})
+ bind({ids["servo:gear:front"],ids["servo:gear:left"],ids["servo:gear:right"]},pilot,{Left="G",Right="H"})
+ for _,side in ipairs({-1,1})do
+  bind({ids["servo:aileron:"..side]},pilot,side==-1 and {Left="D",Right="A"}or {Left="A",Right="D"})
+  bind({ids["servo:elevator:"..side]},pilot,{Left="S",Right="W"})
+  bind({ids["servo:rudder:"..side]},pilot,{Left="A",Right="D"})
+ end
+ for _,role in ipairs({"gear:front","gear:left","gear:right"})do bind({ids["landingWheel:"..role]},pilot,{Forward="W",Backward="S"})end
+ for _,side in ipairs({"left","right"})do
+  local key=side=="left"and "Z"or "X"
+  -- Payload has no direct pilot binding. Native Delay activates it after release.
+  bind({ids["bombPayload:"..side]},ids["bombDelay:"..side],{},false)
+  bind({ids["bombGlue:"..side],ids["bombDelay:"..side]},pilot,{any=key})
+ end
+ return queue
+end
+function F.step(run)
+ if run.phase=="bind"then run.flightCommands=commands({models=run.models});run.flightCommandIndex=1;run.phase="flightBind";run.phaseTime=0 end
+ local item=run.flightCommands[run.flightCommandIndex]
+ if not item then run.phase="finish";run.phaseTime=0;return end
+ if run.phase=="flightBindVerify"then
+  for _,model in ipairs(item.models)do if not beamTo(item.controller,model)then return end end
+  run.flightCommandIndex=run.flightCommandIndex+1;run.phase="flightBind";run.phaseTime=0;return
+ end
+ H.invoke(run,run.tools.bind,run.tools.bindRF,{item.groups,{item.controller},item.keys,false,item.custom},"flightBindVerify")
+end
+function F.audit(record)
+ assert(record and record.plan and record.plan.aircraft and #record.models==#record.plan.parts,"Нет полной сборки самолёта")
+ F.validate(record.plan);local ids=map(record);local allowed,parent={},{},{}
+ local function root(p)parent[p]=parent[p]or p;if parent[p]~=p then parent[p]=root(parent[p])end;return parent[p]end
+ local function union(a,b)if allowed[a]and allowed[b]then parent[root(a)]=root(b)end end
+ local joints={}
+ for _,entry in ipairs(record.models)do
+  assert(entry.model.Parent==record.folder,"Узел самолёта удалён/перемещён: "..entry.spec.id)
+  for _,v in ipairs(entry.model:GetDescendants())do if v:IsA("BasePart")then allowed[v]=entry.spec elseif v:IsA("Snap")or v:IsA("Weld")or v:IsA("ManualWeld")or v:IsA("WeldConstraint")then joints[#joints+1]=v end end
+ end
+ for _,j in ipairs(joints)do union(j.Part0,j.Part1)end
+ local spine=root(pp(ids.spine));assert(seatOf(ids.driver),"Нет кресла пилота")
+ local roles={}
+ for _,entry in ipairs(record.models)do if entry.spec.kind=="Servo"then
+  local model=entry.model;local h=model:FindFirstChildWhichIsA("HingeConstraint",true)
+  assert(h and h.Enabled and h.ActuatorType==Enum.ActuatorType.Servo and h.ServoMaxTorque>0 and h.Attachment0 and h.Attachment1,"Нет сервопривода: "..entry.spec.role)
+  assert(root(h.Attachment0.Parent)==spine and root(h.Attachment1.Parent)~=spine,"Сервопривод закреплён неверно/заблокирован")
+  local output=root(h.Attachment1.Parent);local frame=ids["frame:"..entry.spec.role];assert(frame and root(pp(frame))==output,"Нет связи с фонарём/рулём/шасси")
+  roles[entry.spec.role]=output
+ end end
+ local rotor={}
+ for _,entry in ipairs(record.models)do if entry.spec.group=="landingWheel"then
+  local h=entry.model:FindFirstChildWhichIsA("HingeConstraint",true);assert(h and h.Attachment0 and h.Attachment1 and h.MotorMaxTorque>0,"Нет шарнира колеса шасси")
+  assert(root(h.Attachment0.Parent)==roles[entry.spec.role]and root(h.Attachment1.Parent)~=roles[entry.spec.role],"Колесо шасси заблокировано/не закреплено")
+  local collider=entry.model:FindFirstChild("InvisPart",true)or entry.model:FindFirstChild("WheelCollider",true);assert(collider and collider.CanCollide,"Нет коллайдера шасси")
+  rotor[entry.spec.id]=root(h.Attachment1.Parent)
+ end end
+ for part,q in pairs(allowed)do
+  local expected
+  if q.group=="airframe"or q.group=="pilot"or q.group=="jet"then expected=spine
+  elseif q.group=="canopy"or q.group=="flightSurface"or q.group=="gear"then expected=roles[q.role]
+  elseif q.group=="airWheelSkin"then expected=rotor[q.wheelId]end
+  if expected then assert(root(part)==expected,"Не закреплена деталь самолёта: "..q.id)end
+ end
+ for _,id in ipairs({"jet:-1","jet:1"})do
+  local jet=ids[id];assert(value(jet,"Fuel")and value(jet,"Fuel")>0,"Нет топлива в JetTurbine")
+  assert(jet:FindFirstChildWhichIsA("BodyVelocity",true),"Нет штатного механизма тяги JetTurbine")
+ end
+ local queued=commands(record)
+ for _,item in ipairs(queued)do for _,model in ipairs(item.models)do assert(beamTo(item.controller,model),"Не подтверждена игровая привязка")end end
+ -- Recompute rigid components with each Glue removed. A hung bomb must then be
+ -- separate from hull; extra welds would prevent its native release.
+ for _,side in ipairs({"left","right"})do
+  local glue=ids["bombGlue:"..side];local payload=ids["bombPayload:"..side];assert(root(pp(glue))==spine and root(pp(payload))==spine,"Подвес не закреплён до сброса")
+  local cut={};local function r(p)cut[p]=cut[p]or p;if cut[p]~=p then cut[p]=r(cut[p])end;return cut[p]end
+  for _,j in ipairs(joints)do local a,b=j.Part0,j.Part1
+   if allowed[a]and allowed[b]and not a:IsDescendantOf(glue)and not b:IsDescendantOf(glue)then cut[r(a)]=r(b)end
+  end
+  assert(r(pp(payload))~=r(pp(ids.spine)),"Динамитный подвес приварен в обход Glue")
+  local bombRoot=r(pp(payload))
+  for part,q in pairs(allowed)do if q.group=="bomb"and q.bombSide==side then assert(r(part)==bombRoot,"Отдельная деталь/Delay не закреплены на подвесе")end end
+  assert(not beamTo(ids.driver,payload),"Динамит нельзя напрямую подключать к креслу")
+ end
+ return "Су-57: каркас, шасси, фонарь, рули, тяга и цепи Glue → Delay → динамит структурно подтверждены. Полёт, сброс и подрыв ещё требуют испытания в игре."
+end
+function F.sit()
+ assert(not N.job and C.last and C.last.plan.aircraft,"Нет своего собранного самолёта")
+ local ids=map(C.last);local model=ids.driver;assert(model and model.Parent==C.last.folder,"Кресло пилота удалено")
+ local seat=assert(seatOf(model),"Нет кресла пилота");local h=assert(humOf(me),"Нет персонажа")
+ h:UnequipTools();me.Character:PivotTo(seat.CFrame*CFrame.new(0,2.5,0));seat:Sit(h);F.record=C.last;A.status(F.help)
+end
+function F.summary(record)
+ local ids=map(record);local held=0
+ for _,side in ipairs({"left","right"})do local g=ids["bombGlue:"..side];if g and g.Parent==record.folder then held=held+1 end end
+ local fuel=0;local known=false
+ for _,id in ipairs({"jet:-1","jet:1"})do local n=value(ids[id],"Fuel");if finite(n)then fuel=fuel+n;known=true end end
+ local root=pp(ids.spine);return string.format("Су-57 · %.1f studs/с · топливо %s · подвесов %d/2",root.AssemblyLinearVelocity.Magnitude,known and string.format("%.0f",fuel)or "?",held)
+end
+function F.update(dt)
+ F.clock=F.clock+dt;if F.clock<.2 then return end;F.clock=0
+ local record=F.record or C.last
+ if not record or not record.plan.aircraft then if F.hud then F.hud.Visible=false end;return end
+ local ids=map(record);local seat=seatOf(ids.driver);local visible=A.alive and seat and seat.Occupant==humOf(me)
+ if not F.hud and visible then
+  F.hud=new("Frame",{Name="NEBULAFlightHUD",Position=UDim2.new(1,-365,1,-92),Size=UDim2.fromOffset(345,62),BackgroundColor3=Color3.new(0,0,0),BackgroundTransparency=.12,BorderSizePixel=0},gui)
+  F.readout=text(F.hud,"",UDim2.fromOffset(10,7),UDim2.new(1,-20,1,-14),Enum.Font.Code);F.readout.TextWrapped=true;F.readout.TextSize=11
+ end
+ if F.hud then F.hud.Visible=visible==true;if visible then F.readout.Text=F.summary(record).."\nR: тяга   C/V: фонарь   G/H: шасси   Z/X: сброс"end end
+end
+function F.cleanup()destroy(F.hud);F.hud=nil;F.readout=nil;F.record=nil end
+end
+
+-- END NEBULA NATIVE FIGHTER
 function C.validatePlot(plan,base,zone)
  local function check(q,second)
   local localCF=zone.CFrame:ToObjectSpace(C.cf(q,base,second))
@@ -2250,6 +2508,7 @@ function C.bindingGroups(models)
 end
 function C.audit(record)
  assert(record and record.plan and record.models,"Нет завершённой сборки");C.Properties.audit(record)
+ if record and record.plan and record.plan.aircraft then return C.Fighter.audit(record)end
  if record and record.plan and record.plan.tank then return C.Tank.audit(record)end
  assert(record and record.models and #record.models==#record.plan.parts,"Нет завершённой сборки")
  local allowed,parents,labels,carriers={},{},{},{};local wheels,springs,links=0,0,0;local seat;local spine
@@ -2321,6 +2580,7 @@ function C.step(dt,run)
  if run.sendClock<(run.interval or 0.5)then return end;run.sendClock=0
  local q=run.plan.parts[run.index]
  if not q then
+  if run.plan.aircraft and(run.phase=="bind"or run.phase=="flightBind"or run.phase=="flightBindVerify")then C.Fighter.step(run);return end
   if run.phase=="properties"or run.phase=="propertiesVerify"then C.Properties.step(run);return end
   if run.plan.tank and(run.phase=="bind"or run.phase=="tankBind"or run.phase=="tankBindVerify")then C.Tank.step(run);return end
   if run.phase=="skinCollision"then
@@ -2370,6 +2630,11 @@ function C.step(dt,run)
    assert(measuredSpring and measuredSpring.Attachment0 and measuredSpring.Attachment1,"Нет концов пружины")
    run.tune.freeLength=(measuredSpring.Attachment0.WorldPosition-measuredSpring.Attachment1.WorldPosition).Magnitude
    assert(finite(run.tune.freeLength)and run.tune.freeLength>.05,"Неверная длина подвески")
+   local measuredSpring
+   for _,entry in ipairs(run.models)do if entry.spec.group=="spring"then measuredSpring=entry.model:FindFirstChildWhichIsA("SpringConstraint",true);break end end
+   assert(measuredSpring and measuredSpring.Attachment0 and measuredSpring.Attachment1,"Нет концов пружины")
+   run.tune.freeLength=(measuredSpring.Attachment0.WorldPosition-measuredSpring.Attachment1.WorldPosition).Magnitude
+   assert(finite(run.tune.freeLength)and run.tune.freeLength>.05,"Неверная длина подвески")
    local springs={};for _,entry in ipairs(run.models)do if entry.spec.group=="spring"then springs[#springs+1]=entry.model end end
    H.invoke(run,run.tools.props,run.tools.propsRF,{"Target lenght",springs,run.tune.freeLength},"verifyLength");return
   elseif run.phase=="verifyLength"then
@@ -2389,9 +2654,17 @@ function C.step(dt,run)
  elseif run.phase=="identify"then
   for _,model in ipairs(run.folder:GetChildren())do if not run.seen[model]and model.Name==q.kind then local part=model:FindFirstChild("PPart")
    if part and part:IsA("BasePart")and (part.Position-cf.Position).Magnitude<0.6 then
-    run.seen[model]=true;run.model=model;run.part=part;run.models[#run.models+1]={model=model,spec=q};run.phase=q.size and "scale"or(q.skipPaint and "advance"or "paint");run.phaseTime=0;break
+    run.seen[model]=true;run.model=model;run.part=part;run.models[#run.models+1]={model=model,spec=q};run.afterIdentify=q.size and "scale"or(q.skipPaint and "advance"or "paint");run.earlyHideAttempts=0;run.phase=q.transparency==1 and not q.size and "earlyTransparency"or run.afterIdentify;run.phaseTime=0;break
    end
   end end
+ elseif run.phase=="earlyTransparency"then
+  local opacity=C.Properties.transparency(run.model)
+  if opacity>=.99 then run.phase=run.afterIdentify;run.phaseTime=0;return end
+  run.earlyHideAttempts=run.earlyHideAttempts+1;assert(run.earlyHideAttempts<=4,"Прозрачность механизма не подтверждена")
+  run.alphaExpected=math.min(1,opacity+.25)
+  H.invoke(run,run.tools.props,run.tools.propsRF,{"Transparency",{run.model},.25},"verifyEarlyTransparency")
+ elseif run.phase=="verifyEarlyTransparency"then
+  if C.Properties.transparency(run.model)>=run.alphaExpected-.01 then run.phase="earlyTransparency";run.phaseTime=0 end
  elseif run.phase=="scale"then H.invoke(run,run.tools.scale,run.tools.scaleRF,{run.model,Vector3.new(table.unpack(q.size)),cf},"verifyScale",function(size,pose)C.acceptScaleReply(run,q,size,pose)end)
  elseif run.phase=="verifyScale"then
   assert(run.part.Parent,"Деталь удалена");if (run.part.Size-Vector3.new(table.unpack(q.size))).Magnitude<=.005 and C.poseClose(run.part.CFrame,cf)then run.phase="paint";run.phaseTime=0 end
@@ -2439,6 +2712,7 @@ function C.stepAlign(dt,run)
  if run.phase=="align"then H.invoke(run,run.tool,run.remote,{{entry.model},pp.CFrame,target,"Move"},"verifyAlign")end
 end
 function C.startDriveProbe()
+ if C.last and C.last.plan.aircraft then A.status(C.Fighter.summary(C.last).." · измерение полёта доступно через HUD при посадке");return end
  if C.last and C.last.plan.tank then return C.Tank.startProbe()end
  assert(not N.job,"Сначала останови задачу");C.audit(C.last)
  local seat,spine
@@ -2449,6 +2723,7 @@ function C.startDriveProbe()
  A.status("12 секунд: сам проедь вперёд и поверни. Проверка только измеряет, не управляет персонажем.")
 end
 function C.stepProbe(dt)
+ if C.Fighter then C.Fighter.update(dt)end
  if C.probe and C.probe.tank then return C.Tank.stepProbe(dt)end
  local p=C.probe;if not p then return end
  if not A.alive or N.job or p.character~=me.Character or not p.spine.Parent or p.seat.Occupant~=humOf(me)then C.probe=nil;A.status("Проверка езды отменена: изменилось сиденье/персонаж/задача");return end
@@ -2464,7 +2739,7 @@ function C.stepProbe(dt)
   A.status(string.format("Замер: %.1f studs; поворот %.1f°. Движение: %s; поворот: %s. Это наблюдение, не гарантия устойчивости.",report.horizontalStuds,report.yawDegrees,report.driveObserved and "видно"or "не подтверждено",report.steeringObserved and "видно"or "не подтверждено"))
  end
 end
-function C.cleanup()C.cancelNewLoad();C.newCache={};C.probe=nil;C.lastDriveReport=nil;C.clearPreview();C.anchor=nil;C.last=nil;destroy(C.stage);C.stage=nil end
+function C.cleanup()if C.Fighter then C.Fighter.cleanup()end;C.cancelNewLoad();C.newCache={};C.probe=nil;C.lastDriveReport=nil;C.clearPreview();C.anchor=nil;C.last=nil;destroy(C.stage);C.stage=nil end
 end
 
 -- END NEBULA GARAGE
@@ -3288,12 +3563,38 @@ action(N.panels.boat,"Гараж · 10 спорткаров",function()A.switchP
 
 
 
+
+
+
+
+
+
 -- BEGIN NEBULA GARAGE UI
 do
 local C=N.Cars
+local choiceRefreshers={}
+function C.refreshChoices()for _,fn in ipairs(choiceRefreshers)do fn()end end
+local function choiceRow(parent,title,options,get,set)
+ local f=new("Frame",{Size=UDim2.new(1,0,0,65),BackgroundTransparency=1},parent);A.place(parent,f)
+ text(f,title,UDim2.fromOffset(2,0),UDim2.new(1,-4,0,23),Enum.Font.GothamMedium)
+ local buttons={}
+ local function refresh()
+  local selected=get()
+  for i,b in ipairs(buttons)do local chosen=i==selected
+   b.BackgroundColor3=chosen and Color3.fromRGB(215,215,215)or Color3.fromRGB(14,14,14)
+   b.TextColor3=chosen and Color3.new(0,0,0)or Color3.fromRGB(150,150,150)
+   b.Font=chosen and Enum.Font.GothamBold or Enum.Font.GothamMedium
+  end
+ end
+ for i,name in ipairs(options)do
+  local id=i;local b=button(f,name,UDim2.new((i-1)/#options,3,0,27),UDim2.new(1/#options,-6,0,32));buttons[i]=b
+  on(b.Activated,function()local ok,err=pcall(function()assert(not N.job,"Сначала останови сборку");set(id);refresh();C.clearPreview();C.refreshView(true)end);if not ok then A.status(tostring(err))end end)
+ end
+ choiceRefreshers[#choiceRefreshers+1]=refresh;refresh();return f
+end
 local p=page("Гараж","Выбери модель из списка, посмотри запас и превью, затем начни сборку. Испытания обновлённой механики в игре отложены.")
 local banks=new("Frame",{Size=UDim2.new(1,0,0,36),BackgroundTransparency=1},p);A.place(p,banks)
-local legacyButton=button(banks,"Legacy",nil,UDim2.new(.5,-4,1,0));local newButton=button(banks,"New · машины и танк",UDim2.new(.5,4,0,0),UDim2.new(.5,-4,1,0))
+local legacyButton=button(banks,"Legacy",nil,UDim2.new(.5,-4,1,0));local newButton=button(banks,"New · машины, танк, авиация",UDim2.new(.5,4,0,0),UDim2.new(.5,-4,1,0))
 local modelSearch=input(p,"GarageModelSearch","Найти модель: Ferrari, McLaren, Abrams…")
 C.catalogPanels={};local catalogRows={}
 local headline=text(p,"Выбери модель",nil,UDim2.new(1,0,0,30),Enum.Font.GothamBold);headline.TextSize=20;A.place(p,headline)
@@ -3352,7 +3653,7 @@ function C.focusBuildUI()p.CanvasPosition=Vector2.new(0,math.max(0,progress.Abso
 function C.refreshBuildUI()
  local info=C.progress
  if info then
-  progressTitle.Text=info.state.." · "..math.floor(info.ratio*100).."% · "..info.done.." / "..info.total
+  progressTitle.Text=info.state.." · "..string.format("%.1f",info.ratio*100).."% · "..info.done.." / "..info.total
   progressText.Text=info.phase.."\nПрошло "..C.Build.duration(info.elapsed).." · осталось ≈"..C.Build.duration(info.eta).." · скорость ×"..tostring(info.speed)
   fill.Size=UDim2.fromScale(info.ratio,1)
  else
@@ -3376,13 +3677,13 @@ end
 function C.refreshView(draw)
  local ok,plan=pcall(C.plan)
  if not ok then C.viewPlan=nil;local entry=C.currentCatalog()[C.selected];headline.Text=entry and entry.name or "Выбери модель";details.Text="Данные New ещё не загружены. Нажми «Загрузить модель».";tankControls.Visible=entry and entry.tank==true or false;destroy(C.stage);C.stage=nil;C.refreshBuildUI();return end
- C.viewPlan=plan;headline.Text=plan.name;tankControls.Visible=plan.tank==true
+ C.viewPlan=plan;headline.Text=plan.name;tankControls.Visible=plan.tank==true or plan.aircraft==true;tankControls.Text=plan.aircraft and C.Fighter.help or C.Tank.help
  details.Text=(C.bank=="new"and "New"or "Legacy").." · "..plan.livery.."\n"..(plan.tank and "Две шарнирные цепи и интерьер. Испытания отложены."or "Отдельная внешняя геометрия колёс и кресла. Игровые механизмы скрываются инструментом свойств.")..(plan.credit and("\n3D: "..plan.credit.author)or "")
  if draw then
   destroy(C.stage);C.stage=C.previewInto(view,CFrame.new());local angle=math.rad(-43+C.turn);local radius=math.max(26,math.max(plan.length,plan.width,plan.height)*.95);local y=plan.height*.4
   camera.CFrame=CFrame.lookAt(Vector3.new(math.cos(angle)*radius,y+radius*.33,math.sin(angle)*radius),Vector3.new(0,y,0))
  end
- C.updateBankUI();C.refreshBuildUI()
+ C.updateBankUI();C.refreshChoices();C.refreshBuildUI()
 end
 on(modelSearch:GetPropertyChangedSignal("Text"),C.updateBankUI)
 local function changeBank(bank)local ok,err=pcall(C.useBank,bank);if not ok then A.status(tostring(err))end end
@@ -3402,13 +3703,13 @@ action(p,"2. Показать превью на участке",C.previewWorld,"
 action(p,"3. Проверить запас материалов",function()local plan=C.check();C.refreshMaterials();A.status("Расчётный запас достаточен: "..plan.name..". Расход при масштабировании окончательно определяет сервер.")end)
 action(p,"4. Проверить соединения готовой сборки",function()A.status(C.audit(C.last))end)
 action(p,"5. Снять закрепление и запустить",C.release,"Доступно после подтверждения связей. Движение проверяется отдельно.")
-action(p,"6. Сесть за руль",C.Detail.sit,"Занимает своё водительское кресло. У машины W/S — движение, A/D — поворот.")
+action(p,"6. Занять место водителя / пилота",C.Detail.sit,"Занимает своё кресло. У машины W/S — движение, A/D — поворот. Для самолёта смотри подсказку управления.")
 action(p,"Убрать превью",C.clearPreview)
 action(p,"Цвет кузова",function()assert(not N.job,"Сначала останови сборку");C.paint=C.paint%#C.paints+1;C.clearPreview();C.refreshView(true);A.status("Цвет: "..C.paints[C.paint].name)end)
-action(p,"Окраска: исходная / полосы / контраст",function()assert(not N.job,"Сначала останови сборку");C.livery=C.livery%#C.liveries+1;C.clearPreview();C.refreshView(true)end)
+choiceRow(p,"Окраска",{"Исходная","Полосы","Контраст"},function()return C.livery end,function(i)C.livery=i end)
 action(p,"Цвет акцентов",function()assert(not N.job,"Сначала останови сборку");C.accent=C.accent%#C.accentPaints+1;C.clearPreview();C.refreshView(true)end)
-action(p,"Подвеска: мягкая / спорт / трек",function()assert(not N.job,"Сначала останови сборку");C.suspension=C.suspension%#C.suspensions+1;A.status("Подвеска: "..C.suspensions[C.suspension].name)end)
-action(p,"Колёса: дорожный / спорт / быстрый профиль",function()assert(not N.job,"Сначала останови сборку");C.wheelSpeed=C.wheelSpeed==20 and 30 or C.wheelSpeed==30 and 40 or 20;A.status("Скорость игровых колёс: "..C.wheelSpeed.."; момент 10 000 000. Применится к новой сборке.")end)
+choiceRow(p,"Подвеска",{"Мягкая","Спорт","Трек"},function()return C.suspension end,function(i)C.suspension=i end)
+choiceRow(p,"Колёса",{"Дорожный","Спорт","Быстрый"},function()return C.wheelSpeed==20 and 1 or C.wheelSpeed==30 and 2 or 3 end,function(i)C.wheelSpeed=({20,30,40})[i]end)
 action(p,"Выровнять панели готовой сборки",C.startAlign,"Совок: только закреплённые детали своей сборки.")
 action(p,"Показать управление танком",function()A.status(C.Tank.help)end)
 action(p,"Замер движения · 12 секунд",C.startDriveProbe,"Выполняй позже в игре: проедь и поверни самостоятельно.")

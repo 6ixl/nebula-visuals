@@ -29,11 +29,13 @@ function D.materials(plan)
 end
 function D.prepare(raw)
  local p=copy(raw)
+ if p.aircraft then C.Fighter.prepare(p);D.materials(p);return p end
  if p.tank then
   local seats={}
   for _,q in ipairs(p.parts)do
    if q.group=="track"and not q.id:match(":shoe$")then q.transparency=1 end
    if q.id:match("^skinSupport:")then q.transparency=1 end
+   if q.kind=="Cannon"or q.group=="drive"then q.transparency=1 end
    if q.kind=="CarSeat"then
     q.transparency=1;q.noCollide=true
     local x,y,z=q.pos[1],q.pos[2]-2,q.pos[3]-.1
@@ -133,6 +135,7 @@ function D.prepare(raw)
 end
 function D.sit()
  assert(not N.job and C.last,"Сначала заверши сборку")
+ if C.last.plan.aircraft then return C.Fighter.sit()end
  if C.last.plan.tank then return C.Tank.sit()end
  local model;for _,entry in ipairs(C.last.models)do if entry.spec.id=="driver"then model=entry.model;break end end
  assert(model and model.Parent==C.last.folder,"Нет своего водительского кресла")

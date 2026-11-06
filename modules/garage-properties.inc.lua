@@ -10,10 +10,15 @@ local function alpha(model)
  for _,p in ipairs(model:GetDescendants())do if p:IsA("BasePart")then value=math.min(value,p.Transparency)end end
  return value
 end
+X.transparency=alpha
 local function read(model,property)
  if property=="Transparency"then return alpha(model)
  elseif property=="Collision"then local p=model:FindFirstChild("PPart");return p and p.CanCollide
  elseif property=="Wheel speed"then local value=model:FindFirstChild("MaxSpeed");return value and value.Value
+ elseif property=="Jet speed"then local value=model:FindFirstChild("MaxSpeed");return value and value.Value
+ elseif property=="Jet force"then local value=model:FindFirstChild("MaxForce");return value and value.Value
+ elseif property=="Delay time"then local value=model:FindFirstChild("WaitDuration");return value and value.Value
+ elseif property=="Servo angle"then local value=model:FindFirstChild("TargetAngle");return value and value.Value
  elseif property=="Wheel torque"then local h=model:FindFirstChildWhichIsA("HingeConstraint",true);return h and h.MotorMaxTorque end
 end
 function X.queue(run)
@@ -28,6 +33,12 @@ function X.queue(run)
  end
  batches(collisions,"Collision",false);batches(hidden,"Transparency",1);batches(glass,"Transparency",.5)
  batches(wheels,"Wheel speed",run.wheelSpeed);batches(wheels,"Wheel torque",run.wheelTorque)
+ for _,entry in ipairs(run.models)do local q=entry.spec
+  if q.jetSpeed then batches({entry.model},"Jet speed",q.jetSpeed)end
+  if q.jetForce then batches({entry.model},"Jet force",q.jetForce)end
+  if q.servoAngle then batches({entry.model},"Servo angle",q.servoAngle)end
+  if q.delaySeconds then batches({entry.model},"Delay time",q.delaySeconds)end
+ end
  return queue
 end
 function X.step(run)
@@ -51,8 +62,8 @@ function X.step(run)
    batch[#batch+1]=model
    local expected=item.goal
    if item.property=="Transparency"then expected=current>=.99 and 0 or math.min(1,current+.25)
-   elseif item.property=="Wheel speed"or item.property=="Wheel torque"then
-    local cycle=item.property=="Wheel speed"and speedCycle or torqueCycle;local position
+   elseif item.property=="Wheel speed"or item.property=="Wheel torque"or item.property=="Jet speed"or item.property=="Jet force"or item.property=="Servo angle"then
+    local cycle=item.property=="Wheel speed"and speedCycle or item.property=="Wheel torque"and torqueCycle or item.property=="Jet speed"and {100,50,25,10,5}or item.property=="Jet force"and {100000,1000000,10000000,100000000,1000000000}or {45,20,5,90,75,60};local position
     for i,value in ipairs(cycle)do if math.abs(value-current)<.01 then position=i;break end end
     assert(position,"Неизвестная настройка колеса: "..tostring(current));expected=cycle[position%#cycle+1]
    end
@@ -62,13 +73,16 @@ function X.step(run)
  if #batch==0 then advance();return end
  item.cycles=item.cycles+1;assert(item.cycles<=12,"Свойство не достигло заданного значения: "..item.property)
  local args={item.property,batch}
- if item.property=="Collision"then args[3]=false elseif item.property=="Transparency"then args[3]=.25 end
+ if item.property=="Collision"then args[3]=false elseif item.property=="Transparency"then args[3]=.25 elseif item.property=="Delay time"then args[3]=item.goal end
  H.invoke(run,run.tools.props,run.tools.propsRF,args,"propertiesVerify")
 end
 function X.audit(record)
  for _,entry in ipairs(record.models)do local q=entry.spec
   if q.noCollide then assert(read(entry.model,"Collision")==false,"Коллизия не отключена: "..q.id)end
   if q.transparency then local value=read(entry.model,"Transparency");assert(finite(value)and math.abs(value-q.transparency)<.011,"Не подтверждена прозрачность: "..q.id)end
+  for name,property in pairs({jetSpeed="Jet speed",jetForce="Jet force",servoAngle="Servo angle",delaySeconds="Delay time"})do
+   if q[name]then local current=read(entry.model,property);assert(finite(current)and math.abs(current-q[name])<.01,"Не подтверждено свойство "..property..": "..q.id)end
+  end
   if q.group=="wheel"then
    assert(read(entry.model,"Wheel speed")==record.wheelSpeed and read(entry.model,"Wheel torque")==record.wheelTorque,"Не подтверждены скорость/момент колеса")
    local collider=entry.model:FindFirstChild("InvisPart",true)or entry.model:FindFirstChild("WheelCollider",true)
