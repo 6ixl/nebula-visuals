@@ -1,0 +1,445 @@
+[
+  {
+    "format": "nebula-vehicle-1",
+    "id": "mclaren-720s",
+    "name": "McLaren 720S",
+    "inspired": "McLaren 720S",
+    "bill": {
+      "MetalBlock": 25,
+      "FrontWheel": 2,
+      "BackWheel": 2,
+      "CarSeat": 1,
+      "Wedge": 3346,
+      "Spring": 4,
+      "Bar": 16
+    },
+    "length": 20.65,
+    "width": 8.772727272727273,
+    "height": 5.4363636363636365,
+    "wheelbase": 12.136363636363637,
+    "mm": [
+      4543,
+      1930,
+      1196,
+      2670
+    ],
+    "revision": 1,
+    "bank": "new",
+    "livery": "Исходная окраска / акценты",
+    "disableSkinCollision": true,
+    "credit": {
+      "author": "_shobh19",
+      "authorUrl": "https://sketchfab.com/s0h1o9b",
+      "license": "CC Attribution",
+      "sourceName": "2017 Mclaren 720s",
+      "sourceUrl": "https://sketchfab.com/3d-models/f7bece69400f4640a4a3be746b44998b",
+      "licenseUrl": "http://creativecommons.org/licenses/by/4.0/",
+      "mirrorCommit": "2d18dfd9db96bbf0d9cffa949deaf7f571388cbf",
+      "sourceSha256": "156805e5d8a69c3048bd76f7408937a4260bee2aeb30d30c27327d728a3f79ef"
+    }
+  },
+  {
+    "format": "nebula-vehicle-1",
+    "id": "mclaren-p1",
+    "name": "McLaren P1",
+    "inspired": "McLaren P1",
+    "bill": {
+      "MetalBlock": 25,
+      "FrontWheel": 2,
+      "BackWheel": 2,
+      "CarSeat": 1,
+      "Wedge": 7876,
+      "Spring": 4,
+      "Bar": 16
+    },
+    "length": 20.854545454545455,
+    "width": 8.845454545454546,
+    "height": 5.4,
+    "wheelbase": 12.136363636363637,
+    "mm": [
+      4588,
+      1946,
+      1188,
+      2670
+    ],
+    "revision": 1,
+    "bank": "new",
+    "livery": "Исходная окраска / акценты",
+    "disableSkinCollision": true,
+    "credit": {
+      "author": "vecarz",
+      "authorUrl": "https://sketchfab.com/heynic",
+      "license": "CC Attribution",
+      "sourceName": "Mclaren P1 | www.vecarz.com",
+      "sourceUrl": "https://sketchfab.com/3d-models/adae2edc721e4ce7b31c1d06a581e30a",
+      "licenseUrl": "http://creativecommons.org/licenses/by/4.0/",
+      "mirrorCommit": "2d18dfd9db96bbf0d9cffa949deaf7f571388cbf",
+      "sourceSha256": "5a9361ee8e81c3d1cb120a80b361e05f7ddddeae7c33cf277aaf0bc4548b5b30"
+    }
+  },
+  {
+    "format": "nebula-vehicle-1",
+    "id": "mclaren-senna",
+    "name": "McLaren Senna",
+    "inspired": "McLaren Senna",
+    "bill": {
+      "MetalBlock": 25,
+      "FrontWheel": 2,
+      "BackWheel": 2,
+      "CarSeat": 1,
+      "Wedge": 12377,
+      "Spring": 4,
+      "Bar": 16
+    },
+    "length": 21.563636363636363,
+    "width": 8.9,
+    "height": 5.586363636363636,
+    "wheelbase": 12.136363636363637,
+    "mm": [
+      4744,
+      1958,
+      1229,
+      2670
+    ],
+    "revision": 1,
+    "bank": "new",
+    "livery": "Исходная окраска / акценты",
+    "disableSkinCollision": true,
+    "credit": {
+      "author": "Black Snow",
+      "authorUrl": "https://sketchfab.com/BlackSnow02",
+      "license": "CC Attribution",
+      "sourceName": "McLaren Senna Free",
+      "sourceUrl": "https://sketchfab.com/3d-models/ea3e43a6eb004853a87fe9c58422eb96",
+      "licenseUrl": "http://creativecommons.org/licenses/by/4.0/",
+      "mirrorCommit": "2d18dfd9db96bbf0d9cffa949deaf7f571388cbf",
+      "sourceSha256": "7c7743847449e7d9de37f070146c29ac98b5ec23d4778b5a7eda3f64e1d01313"
+    }
+  },
+  {
+    "format": "nebula-vehicle-1",
+    "id": "ferrari-488",
+    "name": "Ferrari 488 Pista Widebody",
+    "inspired": "Ferrari 488 Pista Widebody",
+    "bill": {
+      "MetalBlock": 25,
+      "FrontWheel": 2,
+      "BackWheel": 2,
+      "CarSeat": 1,
+      "Wedge": 5812,
+      "Spring": 4,
+      "Bar": 16
+    },
+    "length": 20.763636363636362,
+    "width": 8.872727272727273,
+    "height": 5.513636363636364,
+    "wheelbase": 12.045454545454545,
+    "mm": [
+      4568,
+      1952,
+      1213,
+      2650
+    ],
+    "revision": 1,
+    "bank": "new",
+    "livery": "Исходная окраска / акценты",
+    "disableSkinCollision": true,
+    "credit": {
+      "author": "Dev365TH",
+      "authorUrl": "https://sketchfab.com/dev365th",
+      "license": "CC Attribution",
+      "sourceName": "Ferrari 488 Pista Widebody",
+      "sourceUrl": "https://sketchfab.com/3d-models/16c28f5b3ed24991ac3d1208f4a8bc1f",
+      "licenseUrl": "http://creativecommons.org/licenses/by/4.0/",
+      "mirrorCommit": "2d18dfd9db96bbf0d9cffa949deaf7f571388cbf",
+      "sourceSha256": "338651aea5a58c4c5d63dfe06728f4fcb35e8625f0883f56df83a8e152004cff"
+    }
+  },
+  {
+    "format": "nebula-vehicle-1",
+    "id": "ferrari-sf90-xx",
+    "name": "Ferrari SF90 XX Stradale",
+    "inspired": "Ferrari SF90 XX Stradale",
+    "bill": {
+      "MetalBlock": 25,
+      "FrontWheel": 2,
+      "BackWheel": 2,
+      "CarSeat": 1,
+      "Wedge": 9039,
+      "Spring": 4,
+      "Bar": 16
+    },
+    "length": 21.40909090909091,
+    "width": 8.963636363636363,
+    "height": 5.390909090909091,
+    "wheelbase": 12.045454545454545,
+    "mm": [
+      4710,
+      1972,
+      1186,
+      2650
+    ],
+    "revision": 1,
+    "bank": "new",
+    "livery": "Исходная окраска / акценты",
+    "disableSkinCollision": true,
+    "credit": {
+      "author": "Ddiaz Design",
+      "authorUrl": "https://sketchfab.com/ddiaz-design",
+      "license": "CC Attribution",
+      "sourceName": "2023 Ferrari SF90 XX Stradale",
+      "sourceUrl": "https://sketchfab.com/3d-models/2c80c667232544649328cf3589921bcd",
+      "licenseUrl": "http://creativecommons.org/licenses/by/4.0/",
+      "mirrorCommit": "2d18dfd9db96bbf0d9cffa949deaf7f571388cbf",
+      "sourceSha256": "ce35b43eda3fc8f1bc80a139cc3c8187135c49bfff24907e9817d347c5b07985"
+    }
+  },
+  {
+    "format": "nebula-vehicle-1",
+    "id": "huracan-evo-rebuilt",
+    "name": "Lamborghini Huracan EVO 2019",
+    "inspired": "Lamborghini Huracan EVO 2019",
+    "bill": {
+      "MetalBlock": 25,
+      "FrontWheel": 2,
+      "BackWheel": 2,
+      "CarSeat": 1,
+      "Wedge": 7862,
+      "Spring": 4,
+      "Bar": 16
+    },
+    "length": 20.545454545454547,
+    "width": 8.786363636363637,
+    "height": 5.295454545454546,
+    "wheelbase": 11.909090909090908,
+    "mm": [
+      4520,
+      1933,
+      1165,
+      2620
+    ],
+    "revision": 1,
+    "bank": "new",
+    "livery": "Исходная окраска / акценты",
+    "disableSkinCollision": true,
+    "credit": {
+      "author": "Galaxy Car Showroom",
+      "sourceName": "2019 Lamborghini Huracán EVO",
+      "sourceUrl": "https://sketchfab.com/3d-models/2019-lamborghini-huracan-evo-71b4b185956d466689ad6edf759ec8b4",
+      "licenseUrl": "http://creativecommons.org/licenses/by/4.0/",
+      "mirrorCommit": "5948d1307f673e98aedae591c0d78c834f184713",
+      "sourceSha256": "7414ca134f854086f91d829f1b96bdf01d16f6d5b06d8ad0382989b862871f68"
+    }
+  },
+  {
+    "format": "nebula-vehicle-1",
+    "id": "porsche-gt3-rs",
+    "name": "Porsche GT3 RS",
+    "inspired": "Porsche GT3 RS",
+    "bill": {
+      "MetalBlock": 25,
+      "FrontWheel": 2,
+      "BackWheel": 2,
+      "CarSeat": 1,
+      "Wedge": 9940,
+      "Spring": 4,
+      "Bar": 16
+    },
+    "length": 20.78181818181818,
+    "width": 8.636363636363637,
+    "height": 6.009090909090909,
+    "wheelbase": 11.168181818181818,
+    "mm": [
+      4572,
+      1900,
+      1322,
+      2457
+    ],
+    "revision": 1,
+    "bank": "new",
+    "livery": "Исходная окраска / акценты",
+    "disableSkinCollision": true,
+    "credit": {
+      "author": "Black Snow",
+      "authorUrl": "https://sketchfab.com/BlackSnow02",
+      "license": "CC Attribution",
+      "sourceName": "Porsche GT3 RS",
+      "sourceUrl": "https://sketchfab.com/3d-models/e738eae819c34d19a31dd066c45e0f3d",
+      "licenseUrl": "http://creativecommons.org/licenses/by/4.0/",
+      "mirrorCommit": "2d18dfd9db96bbf0d9cffa949deaf7f571388cbf",
+      "sourceSha256": "6f66b263e7779925f5a17ac066a0ab1eea3949529d311992e58195a81890f678"
+    }
+  },
+  {
+    "format": "nebula-vehicle-1",
+    "id": "bugatti-chiron",
+    "name": "Bugatti Chiron Profilée",
+    "inspired": "Bugatti Chiron Profilée",
+    "bill": {
+      "MetalBlock": 25,
+      "FrontWheel": 2,
+      "BackWheel": 2,
+      "CarSeat": 1,
+      "Wedge": 10449,
+      "Spring": 4,
+      "Bar": 16
+    },
+    "length": 20.654545454545456,
+    "width": 9.263636363636364,
+    "height": 5.509090909090909,
+    "wheelbase": 12.322727272727272,
+    "mm": [
+      4544,
+      2038,
+      1212,
+      2711
+    ],
+    "revision": 1,
+    "bank": "new",
+    "livery": "Исходная окраска / акценты",
+    "disableSkinCollision": true,
+    "credit": {
+      "author": "DisneyCars",
+      "authorUrl": "https://sketchfab.com/supercarmodels",
+      "license": "CC Attribution",
+      "sourceName": "2023 Bugatti Chiron Profilee",
+      "sourceUrl": "https://sketchfab.com/3d-models/6da5092ee455446cb050e4c6b4a3ac05",
+      "licenseUrl": "http://creativecommons.org/licenses/by/4.0/",
+      "mirrorCommit": "2d18dfd9db96bbf0d9cffa949deaf7f571388cbf",
+      "sourceSha256": "2d73cf6197a785367076d02aef5bf8e1ebc583d6e9085e83887f32c2765ba508"
+    }
+  },
+  {
+    "format": "nebula-vehicle-1",
+    "id": "koenigsegg-jesko",
+    "name": "Koenigsegg Jesko 2020",
+    "inspired": "Koenigsegg Jesko 2020",
+    "bill": {
+      "MetalBlock": 25,
+      "FrontWheel": 2,
+      "BackWheel": 2,
+      "CarSeat": 1,
+      "Wedge": 4946,
+      "Spring": 4,
+      "Bar": 16
+    },
+    "length": 21.027272727272727,
+    "width": 9.227272727272727,
+    "height": 5.5,
+    "wheelbase": 12.272727272727273,
+    "mm": [
+      4626,
+      2030,
+      1210,
+      2700
+    ],
+    "revision": 1,
+    "bank": "new",
+    "livery": "Исходная окраска / акценты",
+    "disableSkinCollision": true,
+    "credit": {
+      "author": "Ddiaz Design",
+      "authorUrl": "https://sketchfab.com/ddiaz-design",
+      "license": "CC Attribution",
+      "sourceName": "2020 Koenigsegg Jesko",
+      "sourceUrl": "https://sketchfab.com/3d-models/c657f51fb0db43e38fea172dfa385287",
+      "licenseUrl": "http://creativecommons.org/licenses/by/4.0/",
+      "mirrorCommit": "2d18dfd9db96bbf0d9cffa949deaf7f571388cbf",
+      "sourceSha256": "c7db7e5240a970b0da5910553e44fb931068c6189530e905003c358125a2a122"
+    }
+  },
+  {
+    "format": "nebula-vehicle-1",
+    "id": "nissan-custom-gtr",
+    "name": "Nissan GT-R Custom 2017",
+    "inspired": "Nissan GT-R Custom 2017",
+    "bill": {
+      "MetalBlock": 25,
+      "FrontWheel": 2,
+      "BackWheel": 2,
+      "CarSeat": 1,
+      "Wedge": 9566,
+      "Spring": 4,
+      "Bar": 16
+    },
+    "length": 21.40909090909091,
+    "width": 8.613636363636363,
+    "height": 6.2272727272727275,
+    "wheelbase": 12.636363636363637,
+    "mm": [
+      4710,
+      1895,
+      1370,
+      2780
+    ],
+    "revision": 1,
+    "bank": "new",
+    "livery": "Исходная окраска / акценты",
+    "disableSkinCollision": true,
+    "credit": {
+      "author": "Socksthecat",
+      "authorUrl": "https://sketchfab.com/Socksthecat",
+      "license": "CC Attribution",
+      "sourceName": "Custom 2017 Nissan GTR",
+      "sourceUrl": "https://sketchfab.com/3d-models/a79151120b524854a958ce46a3b064a8",
+      "licenseUrl": "http://creativecommons.org/licenses/by/4.0/",
+      "mirrorCommit": "2d18dfd9db96bbf0d9cffa949deaf7f571388cbf",
+      "sourceSha256": "f70d34f06abd0969ded32d0fd6f40993613dd4bfa64b5c002cb19f0e11a12945"
+    }
+  },
+  {
+    "format": "nebula-vehicle-1",
+    "id": "abrams-m1a2",
+    "name": "Abrams M1A2 SEPv3 · New",
+    "inspired": "Abrams M1A2 SEPv3",
+    "bank": "new",
+    "revision": 2,
+    "tank": true,
+    "experimental": true,
+    "disableSkinCollision": true,
+    "bill": {
+      "MetalBlock": 2327,
+      "CarSeat": 2,
+      "Servo": 3,
+      "Cannon": 1,
+      "Motor": 10,
+      "Hinge": 52,
+      "Wedge": 1977
+    },
+    "length": 45,
+    "width": 18,
+    "height": 16,
+    "wheelbase": 24,
+    "mm": [
+      9800,
+      3660,
+      3000,
+      5280
+    ],
+    "livery": "Исходная камуфляжная окраска",
+    "trackLinks": 26,
+    "driveNote": "Две шарнирные цепи, моторы, башня, подъём ствола, пушка и доступный интерьер. Проверка в игре отложена.",
+    "controls": {
+      "leftForward": "Q",
+      "leftBack": "A",
+      "rightForward": "E",
+      "rightBack": "D",
+      "turretLeft": "J",
+      "turretRight": "L",
+      "gunUp": "I",
+      "gunDown": "K",
+      "fire": "F",
+      "hatchLeft": "U",
+      "hatchRight": "O"
+    },
+    "credit": {
+      "author": "dannzjs",
+      "sourceName": "Abrams M1A2 SEPv3",
+      "sourceUrl": "https://sketchfab.com/3d-models/abrams-m1a2-sepv3-eb6f5560198740269507e9948376414c",
+      "license": "CC BY 4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
+      "mirrorCommit": "b51a51a5b58962f4d07931e1871cbc6effd27c3e",
+      "modifications": "Simplified textured geometry converted to block panels; native mechanical chassis, interior, roof opening, servo turret and cannon added."
+    }
+  }
+]

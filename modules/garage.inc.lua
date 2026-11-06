@@ -1,12 +1,8 @@
--- Original NEBULA BABFT garage. Included inside Control; no external loaders.
+-- NEBULA BABFT Garage: Legacy profiles + New data assets. Included in Control.
 do
 local C={selected=1,paint=1,suspension=2,anchor=nil,preview=nil,last=nil,turn=0}
 N.Cars=C
--- Individually authored station profiles, dimensions in mm; no downloaded 3D assets.
--- Individually authored station profiles, dimensions in mm; no downloaded 3D assets.
--- Individually authored station profiles, dimensions in mm; no downloaded 3D assets.
--- Individually authored station profiles, dimensions in mm; no downloaded 3D assets.
--- Individually authored station profiles, dimensions in mm; no downloaded 3D assets.
+-- Legacy profiles are authored locally; credited New meshes load as validated JSON data.
 C.catalog={
  {name="720S · Papaya",inspired="McLaren 720S",color={246,103,24},mm={4543,1930,1196,2670},roofTone="black",shape="720",wing="active"},
  {name="P1 · Volcano",inspired="McLaren P1",color={241,192,29},mm={4588,1946,1188,2670},roofTone="black",shape="p1",wing="p1"},
@@ -78,7 +74,9 @@ function C.plan(which,paint,livery,accent)
   local sx,sz,sy=0,0,0
   for _,point in ipairs({a,b,c,e})do local delta=minus(point,centre);sx=math.max(sx,math.abs(dot(delta,x))*2);sz=math.max(sz,math.abs(dot(delta,z))*2);sy=math.max(sy,math.abs(dot(delta,y))*2)end
   local basis={x[1],y[1],z[1],x[2],y[2],z[2],x[3],y[3],z[3]}
-  return add(id,kind or "PlasticBlock",centre,V(sx+.025,math.max(.1,sy+.065),sz+.025),tone,"body",nil,nil,basis)
+  -- Warping is represented by orientation, never by a thick bounding box.
+  -- Including quad warp in thickness produced the visible saw-tooth canopy edges.
+  return add(id,kind or "PlasticBlock",centre,V(sx+.004,.05,sz+.004),tone,"body",nil,nil,basis)
  end
  local function box(id,x,y,z,sx,sy,sz,tone,rx,ry,rz,kind)
   return add(id,kind or "PlasticBlock",V(x,y,z),V(sx,sy,sz),tone,"body",V(rx or 0,ry or 0,rz or 0))
@@ -175,7 +173,17 @@ function C.plan(which,paint,livery,accent)
   local roofTone=(style==3 or d.shape=="gtr")and "black"or d.roofTone
   local tone=isRoof and roofTone or(isPillar and "body"or "glass")
   if isRoof and style==2 and math.abs(centre)>.06 and math.abs(centre)<.22 then tone="accent"end
-  panel("canopy:"..i..":"..j,canopyPoint(ta,u),canopyPoint(ta,v),canopyPoint(tb,v),canopyPoint(tb,u),tone,tone=="glass"and "GlassBlock"or "PlasticBlock")
+  if tone~="glass"then panel("canopy:"..i..":"..j,canopyPoint(ta,u),canopyPoint(ta,v),canopyPoint(tb,v),canopyPoint(tb,u),tone,"PlasticBlock")end
+ end end
+ -- Coherent panes replace hundreds of overlapping transparent rectangular tiles.
+ for _,range in ipairs({{start,roofStart,"front"},{roofEnd,finish,"rear"}})do
+  for j=1,4 do local u,v=-.78+1.56*(j-1)/4,-.78+1.56*j/4
+   local q=panel("glass:"..range[3]..":"..j,canopyPoint(range[1],u),canopyPoint(range[1],v),canopyPoint(range[2],v),canopyPoint(range[2],u),"glass","GlassBlock");q.transparency=.5;q.noCollide=true
+  end
+ end
+ for _,side in ipairs({-1,1})do for j=1,3 do
+  local ta=roofStart+(roofEnd-roofStart)*(j-1)/3;local tb=roofStart+(roofEnd-roofStart)*j/3
+  local q=panel("glass:side:"..side..":"..j,canopyPoint(ta,side*.64),canopyPoint(ta,side*.98),canopyPoint(tb,side*.98),canopyPoint(tb,side*.64),"glass","GlassBlock");q.transparency=.5;q.noCollide=true
  end end
  -- Seals and roof rails follow the curved canopy rather than a generic rectangular window.
  for _,side in ipairs({-1,1})do
@@ -377,6 +385,382 @@ function C.plan(which,paint,livery,accent)
  return p
 end
 
+-- BEGIN NEW GARAGE BANK
+-- Two independent shape banks. Legacy geometry is preserved; New loads validated data only.
+local oldPlan=C.plan
+C.bank="legacy";C.bankSelections={legacy=1,new=1};C.newCache={};C.newLoadNonce=0
+C.newCatalog={{id="mclaren-720s",name="McLaren 720S",inspired="McLaren 720S",parts=3396,author="_shobh19"},{id="mclaren-p1",name="McLaren P1",inspired="McLaren P1",parts=7926,author="vecarz"},{id="mclaren-senna",name="McLaren Senna",inspired="McLaren Senna",parts=12427,author="Black Snow"},{id="ferrari-488",name="Ferrari 488 Pista Widebody",inspired="Ferrari 488 Pista Widebody",parts=5862,author="Dev365TH"},{id="ferrari-sf90-xx",name="Ferrari SF90 XX Stradale",inspired="Ferrari SF90 XX Stradale",parts=9089,author="Ddiaz Design"},{id="huracan-evo-rebuilt",name="Lamborghini Huracan EVO 2019",inspired="Lamborghini Huracan EVO 2019",parts=7912,author="Galaxy Car Showroom"},{id="porsche-gt3-rs",name="Porsche GT3 RS",inspired="Porsche GT3 RS",parts=9990,author="Black Snow"},{id="bugatti-chiron",name="Bugatti Chiron Profilée",inspired="Bugatti Chiron Profilée",parts=10499,author="DisneyCars"},{id="koenigsegg-jesko",name="Koenigsegg Jesko 2020",inspired="Koenigsegg Jesko 2020",parts=4996,author="Ddiaz Design"},{id="nissan-custom-gtr",name="Nissan GT-R Custom 2017",inspired="Nissan GT-R Custom 2017",parts=9616,author="Socksthecat"},{id="abrams-m1a2",name="Abrams M1A2 SEPv3 · New",inspired="Abrams M1A2 SEPv3",parts=4372,author="dannzjs",tank=true}}
+function C.currentCatalog()return C.bank=="new"and C.newCatalog or C.catalog end
+function C.importNew(value,id)
+ assert(type(value)=="table"and value.format=="nebula-vehicle-1"and value.id==id,"Неверный формат новой модели")
+ assert(type(value.parts)=="table"and #value.parts>0 and #value.parts<=30000,"Неверное количество деталей")
+ local allowed={Wedge=true,PlasticBlock=true,MetalBlock=true,GlassBlock=true,FrontWheel=true,BackWheel=true,Spring=true,Bar=true,CarSeat=true,Motor=true,Servo=true,Hinge=true,Cannon=true}
+ local groups={body=true,carrier=true,wheel=true,seat=true,spring=true,link=true,track=true,drive=true,turret=true,gun=true,hatch=true,turretMount=true,gunMount=true,hatchMount=true};local ids,bill={},{}
+ local function vector(t,count,lo,hi)
+  assert(type(t)=="table"and #t==count,"Неверный вектор модели")
+  for _,v in ipairs(t)do assert(finite(v)and v>=lo and v<=hi,"Координата/размер вне предела")end
+ end
+ for _,q in ipairs(value.parts)do
+  assert(type(q.id)=="string"and #q.id<=100 and not ids[q.id]and allowed[q.kind]and groups[q.group],"Неверная деталь модели");ids[q.id]=true
+  vector(q.pos,3,-100,100);vector(q.color,3,0,255);vector(q.rot,3,-360,360)
+  if q.size then vector(q.size,3,.099999,100)end
+  if q.second then vector(q.second,3,-100,100)end
+  if q.basis then
+   vector(q.basis,9,-1.001,1.001)
+   for row=0,2 do local length=0;for col=1,3 do length=length+q.basis[row*3+col]^2 end;assert(math.abs(length-1)<.005,"Матрица не нормализована")end
+   local m=q.basis
+   assert(math.abs(m[1]*m[4]+m[2]*m[5]+m[3]*m[6])<.005 and math.abs(m[1]*m[7]+m[2]*m[8]+m[3]*m[9])<.005 and math.abs(m[4]*m[7]+m[5]*m[8]+m[6]*m[9])<.005,"Оси матрицы не перпендикулярны")
+   local det=m[1]*(m[5]*m[9]-m[6]*m[8])-m[2]*(m[4]*m[9]-m[6]*m[7])+m[3]*(m[4]*m[8]-m[5]*m[7]);assert(math.abs(det-1)<.01,"Матрица отражена/вырождена")
+  end
+  assert((q.kind~="Spring"and q.kind~="Bar")or q.second,"Нет второй точки механизма")
+  bill[q.kind]=(bill[q.kind]or 0)+1
+ end
+ assert(ids.spine and ids.driver,"Нет каркаса или водительского сиденья")
+ if value.tank then assert(C.Tank,"Модуль танка отсутствует");C.Tank.validate(value)else
+  for _,q in ipairs(value.parts)do assert(q.kind~="Motor"and q.kind~="Servo"and q.kind~="Hinge"and q.kind~="Cannon","Механизм танка в автомобильной схеме")end
+ end
+ value.bill=bill;value.bank="new";value.disableSkinCollision=true
+ C.newCache={[id]=value};return value
+end
+function C.plan(which,paint,livery,accent)
+ if C.bank~="new"then return oldPlan(which,paint,livery,accent)end
+ local entry=assert(C.newCatalog[which or C.selected],"Нет новой модели");local raw=assert(C.newCache[entry.id],"Сначала загрузи выбранную New-модель")
+ local p={};for key,value in pairs(raw)do if key~="parts"then p[key]=value end end;p.parts={};p.livery=C.liveries[livery or C.livery]or "Исходная окраска"
+ for i,q in ipairs(raw.parts)do
+  local copy={};for key,value in pairs(q)do copy[key]=value end
+  if q.tone=="body"then
+   local body=(C.paints[paint or C.paint]or C.paints[1]).rgb
+   if body then copy.color=body end
+   if (livery or C.livery)==2 and math.abs(q.pos[1])<raw.width*.14 then copy.color=(C.accentPaints[accent or C.accent]or C.accentPaints[1]).rgb or {220,190,60}end
+   if (livery or C.livery)==3 and q.pos[2]>raw.height*.65 then copy.color={20,23,29}end
+  end
+  p.parts[i]=copy
+ end
+ return p
+end
+function C.useBank(bank)
+ assert(bank=="legacy"or bank=="new","Нет такой вкладки");assert(not N.job,"Останови текущую сборку")
+ C.cancelNewLoad();C.bankSelections[C.bank]=C.selected;C.bank=bank;C.selected=C.bankSelections[bank]or 1;C.clearPreview();destroy(C.stage);C.stage=nil
+ if C.updateBankUI then C.updateBankUI()end
+ if C.refreshView then C.refreshView(false)end
+ if bank=="new"then C.loadSelectedNew()elseif C.refreshView then C.refreshView(true)end
+end
+function C.cancelNewLoad()
+ C.newLoadNonce=C.newLoadNonce+1;C.loading=false
+ local pending=C.newTask;C.newTask=nil;if pending and task.cancel then pcall(task.cancel,pending)end
+end
+function C.loadSelectedNew()
+ assert(C.bank=="new"and not N.job,"Выбери New и останови сборку")
+ local entry=assert(C.newCatalog[C.selected],"Нет модели")
+ if C.newCache[entry.id]then if C.refreshView then C.refreshView(true)end;return end
+ C.cancelNewLoad();local nonce=C.newLoadNonce;C.loading=true
+ A.status("Загрузка New: "..entry.name..". Это данные геометрии, не сторонний Lua.")
+ C.newTask=task.spawn(function()
+  local ok,result=pcall(function()
+   local path="nebula/assets/new/"..entry.id..".json";local text
+   if type(readfile)=="function"and type(isfile)=="function"and isfile(path)then text=readfile(path)
+   else text=game:HttpGet("https://raw.githubusercontent.com/6ixl/nebula-visuals/v6.11-preview.1/assets/new/"..entry.id..".json")end
+   assert(type(text)=="string"and #text<=16777216,"Файл модели больше 16 МиБ")
+   assert(A.alive and C.bank=="new"and nonce==C.newLoadNonce,"Загрузка отменена")
+   return game:GetService("HttpService"):JSONDecode(text)
+  end)
+  if not A.alive or C.bank~="new"or nonce~=C.newLoadNonce then return end
+  C.loading=false;C.newTask=nil
+  if ok then ok,result=pcall(C.importNew,result,entry.id)end
+  if not ok then A.status("New: загрузка не завершена: "..tostring(result):sub(1,110));return end
+  if C.refreshView then local drawn,err=pcall(C.refreshView,true);if not drawn then A.status("Данные загружены; превью недоступно: "..tostring(err):sub(1,90))end end
+ end)
+end
+
+-- END NEW GARAGE BANK
+
+
+
+-- BEGIN NEBULA GARAGE DETAIL
+-- Presentation geometry and native-mechanism alignment shared by Legacy and New.
+do
+local D={};C.Detail=D
+local function copy(value)
+ if type(value)~="table"then return value end;local out={};for k,v in pairs(value)do out[k]=copy(v)end;return out
+end
+local function template(kind)
+ local storage=game:GetService("ReplicatedStorage");local folder=storage:FindFirstChild("BuildingParts");return folder and folder:FindFirstChild(kind)
+end
+local function wheelInfo()
+ local diameter,offset=5.1,{0,0,3};local original=template("FrontWheel")
+ if original then
+  local pp=original:FindFirstChild("PPart");local collider=original:FindFirstChild("InvisPart",true)or original:FindFirstChild("WheelCollider",true)
+  if pp and collider then local cf=pp.CFrame:ToObjectSpace(collider.CFrame);offset={cf.Position.X,cf.Position.Y,cf.Position.Z};diameter=math.max(collider.Size.Y,collider.Size.Z)end
+ end
+ return diameter,offset
+end
+function D.materials(plan)
+ local amount,scaled={},{}
+ for _,q in ipairs(plan.parts)do
+  local cost=1
+  if q.size then scaled[q.kind]=true;local source=template(q.kind);local pp=source and source:FindFirstChild("PPart");local base=pp and pp.Size.X*pp.Size.Y*pp.Size.Z or 8
+   cost=q.size[1]*q.size[2]*q.size[3]/math.max(.001,base)
+  end
+  amount[q.kind]=(amount[q.kind]or 0)+cost
+ end
+ plan.required={};for kind,value in pairs(amount)do plan.required[kind]=math.ceil(value+(scaled[kind]and .999 or 0))end
+ return plan.required
+end
+function D.prepare(raw)
+ local p=copy(raw)
+ if p.tank then
+  local seats={}
+  for _,q in ipairs(p.parts)do
+   if q.group=="track"and not q.id:match(":shoe$")then q.transparency=1 end
+   if q.id:match("^skinSupport:")then q.transparency=1 end
+   if q.kind=="CarSeat"then
+    q.transparency=1;q.noCollide=true
+    local x,y,z=q.pos[1],q.pos[2]-2,q.pos[3]-.1
+    seats[#seats+1]={id="seatVisual:"..q.id..":pad",kind="PlasticBlock",pos={x,y,z},size={1.8,.3,1.7},color={19,22,19},rot={0,0,0},group="body",noCollide=true}
+    seats[#seats+1]={id="seatVisual:"..q.id..":back",kind="PlasticBlock",pos={x,y+.9,z+.8},size={1.8,1.8,.3},color={25,29,24},rot={-10,0,0},group="body",noCollide=true}
+   end
+  end
+  for _,q in ipairs(seats)do p.parts[#p.parts+1]=q;p.bill[q.kind]=(p.bill[q.kind]or 0)+1 end
+  D.materials(p);return p
+ end
+ if p.detailRevision==1 then return p end
+ local diameter,offset=wheelInfo();local scale=diameter/3.16
+ p.renderScale=scale;p.detailRevision=1;p.disableSkinCollision=true
+ p.length=p.length*scale;p.width=p.width*scale;p.height=p.height*scale;p.wheelbase=p.wheelbase*scale
+ local output={};local body={90,94,99};local black={15,17,20};local width=p.width*.5;local wheelY=diameter*.5;local hasSeatVisual=false
+ local function add(id,kind,pos,size,color,group,extra)
+  local q={id=id,kind=kind,pos=pos,size=size,color=color or body,group=group or "body",rot={0,0,0}}
+  for k,v in pairs(extra or {})do q[k]=v end;output[#output+1]=q;return q
+ end
+ local function box(id,pos,size,color,group,extra)return add(id,"MetalBlock",pos,size,color,group,extra)end
+ for _,q in ipairs(p.parts)do
+  local chassis=q.id=="spine"or q.id=="driver"or q.id:match("^crossmember")or q.id:match("^rail")or q.id:match("^sill")or q.id:match("^upperMount")or q.id:match("^outrigger")
+  if q.group~="wheel"and q.group~="carrier"and q.group~="spring"and q.group~="link"and q.group~="seat"and not chassis then
+   for j=1,3 do q.pos[j]=q.pos[j]*scale;if q.size then q.size[j]=q.size[j]*scale end end
+   if q.second then for j=1,3 do q.second[j]=q.second[j]*scale end end
+   q.noCollide=true
+   if q.id:match("^seatPad")then hasSeatVisual=true end
+   if q.id:match("^seatBack")then q.rot[1]=12 end
+   if q.kind=="Wedge"and q.size then q.size[1]=.05 end
+   local sourceGlass=q.color and q.color[1]==25 and q.color[2]==34 and q.color[3]==43
+   if q.kind=="GlassBlock"or q.glass or sourceGlass then q.transparency=.5 end
+   output[#output+1]=q
+  end
+ end
+ -- A compact core leaves the wheel carriers free. Exterior panels do not collide.
+ box("spine",{0,2.1,0},{2.4,.6,p.length*.84})
+ box("cabinFloor",{0,2.55,0},{7.2,.3,6.5})
+ if not hasSeatVisual then
+  for _,side in ipairs({-1,1})do
+   local x,z=side*1.03*scale,.4*scale
+   box("seatVisual:pedestal:"..side,{x,2.875,z},{1.8,.35,1.5},black,"body",{noCollide=true,transparency=1})
+   add("seatVisual:pad:"..side,"PlasticBlock",{x,3.2,z},{2.05,.3,2.15},black,"body",{noCollide=true})
+   add("seatVisual:back:"..side,"PlasticBlock",{x,4.35,z+1},{2.05,2.4,.32},{23,25,29},"body",{noCollide=true,rot={12,0,0}})
+   for _,edge in ipairs({-1,1})do add("seatVisual:bolster:"..side..":"..edge,"PlasticBlock",{x+edge*.94,3.46,z},{.2,.5,1.9},{34,36,41},"body",{noCollide=true})end
+  end
+ end
+ local axles={-p.wheelbase*.5,p.wheelbase*.5}
+ for i,z in ipairs({axles[1],0,axles[2]})do box("crossmember"..i,{0,2.1,z},{3.2,.5,.6})end
+ local seatRelative={0,-2,-.1};local original=template("CarSeat")
+ if original then local pp=original:FindFirstChild("PPart");local seat=original:FindFirstChildWhichIsA("VehicleSeat",true)
+  if pp and seat then local v=pp.CFrame:ToObjectSpace(seat.CFrame).Position;seatRelative={v.X,v.Y,v.Z}end
+ end
+ local seatCentre={-1.03*scale,3.2,.4*scale}
+ add("driver","CarSeat",{seatCentre[1]-seatRelative[1],seatCentre[2]-seatRelative[2],seatCentre[3]-seatRelative[3]},nil,black,"seat",{transparency=1,noCollide=true,skipPaint=true})
+ local links={}
+ for _,side in ipairs({-1,1})do for axle,z in ipairs(axles)do
+  local id=side..":"..axle;local center={side*(width-.1*scale),wheelY,z}
+  local basis={0,0,side,0,1,0,-side,0,0}
+  local pp={center[1]-side*offset[3],center[2]-offset[2],center[3]+side*offset[1]}
+  local carrierX=pp[1]-side*1.25
+  box("mount"..id,{side*1.4,2.7,z},{.4,2.2,2},body,"body")
+  box("carrier"..id,{carrierX,wheelY,z},{.5,2,1.6},body,"carrier",{noCollide=true,transparency=1})
+  add("wheel"..id,axle==1 and "FrontWheel"or "BackWheel",pp,nil,black,"wheel",{basis=basis,previewSize={2,diameter,diameter},skipPaint=true,transparency=1,wheelCenter=center})
+  local upper=wheelY+1+.5;local lower=wheelY-1-.5
+  links[#links+1]={id="spring"..id,kind="Spring",pos={side*1.4,4.3,z},second={carrierX,upper,z},group="spring",noCollide=true,transparency=1}
+  for level,yy in ipairs({1.1,4.3})do for _,dz in ipairs({-.6,.6})do
+   links[#links+1]={id="arm"..id..":"..level..":"..dz,kind="Bar",pos={side*1.4,yy,z+dz},second={carrierX,level==1 and lower or upper,z+dz},group="link",noCollide=true,transparency=1}
+  end end
+  -- Custom rubber/metal geometry is collision-free and belongs to the rotor root.
+  local wheelId="wheel"..id;local radius=diameter*.5-.035;local n=48
+  local function visual(name,position,size,color,mat)
+   return add("visual:"..id..":"..name,"PlasticBlock",position,size,color,"wheelSkin",{basis=mat,wheelId=wheelId,noCollide=true})
+  end
+  local function radial(name,r,angle,axleOffset,size,color)
+   local c,s=math.cos(angle),math.sin(angle)
+   -- X follows the axle; local Y is radial and Z is tangent.
+   visual(name,{center[1]+side*axleOffset,center[2]+c*r,center[3]+s*r},size,color,{1,0,0,0,c,-s,0,s,c})
+  end
+  for j=1,n do
+   local a=(j-.5)*math.pi*2/n;local tangent=2*radius*math.sin(math.pi/n)+.01
+   radial("rubber:"..j,radius-.16,a,0,{1.9,.32,tangent},black)
+   radial("sidewall:"..j,radius-.35,a,1.01,{.12,.5,tangent},{23,25,28})
+   radial("rim:"..j,radius*.70,a,1.10,{.12,.14,2*radius*.70*math.sin(math.pi/n)+.008},{180,184,190})
+  end
+  visual("hub",{center[1]+side*1.085,center[2],center[3]},{.17,.65,.65},{64,69,77},{1,0,0,0,1,0,0,0,1})
+  local spokes=({10,10,7,5,5,10,10,8,7,6})[C.selected]or 10
+  for j=1,spokes do
+   local a=j*math.pi*2/spokes+.1
+   radial("spoke:"..j,radius*.39,a,1.10,{.16,radius*.67,.15},{146,151,159})
+   radial("bolt:"..j,.24,a,1.20,{.08,.09,.09},{210,210,214})
+  end
+ end end
+ for _,q in ipairs(links)do q.color=body;q.rot={0,0,0};output[#output+1]=q end
+ p.parts=output;p.bill={};for _,q in ipairs(output)do p.bill[q.kind]=(p.bill[q.kind]or 0)+1 end
+ p.driveNote="Невидимые игровые колёса и кресло; отдельная внешняя геометрия без коллизии. Подвеска использует 4 Spring и 16 Bar. Проверка езды отложена."
+ D.materials(p);return p
+end
+function D.sit()
+ assert(not N.job and C.last,"Сначала заверши сборку")
+ if C.last.plan.tank then return C.Tank.sit()end
+ local model;for _,entry in ipairs(C.last.models)do if entry.spec.id=="driver"then model=entry.model;break end end
+ assert(model and model.Parent==C.last.folder,"Нет своего водительского кресла")
+ local seat=assert(model:FindFirstChildWhichIsA("VehicleSeat",true),"Нет VehicleSeat")
+ local h=assert(humOf(me),"Нет персонажа");h:UnequipTools();me.Character:PivotTo(seat.CFrame*CFrame.new(0,2.5,0));seat:Sit(h)
+ A.status("Водительское место. W/S — газ и назад, A/D — поворот. Снятие закрепления — отдельной кнопкой после проверки связей.")
+end
+local rawPlan=C.plan
+function C.plan(...)return D.prepare(rawPlan(...))end
+end
+
+-- Sequential native PropertiesTool operations. Never replaces server properties locally.
+do
+local X={};C.Properties=X;C.wheelSpeed=20;C.wheelTorque=10000000
+local speedCycle={40,30,20,10,5,4,3,2,1,.5,50}
+local torqueCycle={1000000,10000000,100000000,1000000000,10000000000}
+local function alpha(model)
+ local modifier=model:FindFirstChild("TransparencyModifier")
+ if modifier and finite(modifier.Value)then return modifier.Value end
+ local value=1
+ for _,p in ipairs(model:GetDescendants())do if p:IsA("BasePart")then value=math.min(value,p.Transparency)end end
+ return value
+end
+local function read(model,property)
+ if property=="Transparency"then return alpha(model)
+ elseif property=="Collision"then local p=model:FindFirstChild("PPart");return p and p.CanCollide
+ elseif property=="Wheel speed"then local value=model:FindFirstChild("MaxSpeed");return value and value.Value
+ elseif property=="Wheel torque"then local h=model:FindFirstChildWhichIsA("HingeConstraint",true);return h and h.MotorMaxTorque end
+end
+function X.queue(run)
+ local queue={};local collisions,hidden,glass,wheels={},{},{},{}
+ for _,entry in ipairs(run.models)do local q=entry.spec
+  if q.noCollide then collisions[#collisions+1]=entry.model end
+  if q.transparency==1 then hidden[#hidden+1]=entry.model elseif q.transparency==.5 then glass[#glass+1]=entry.model end
+  if q.group=="wheel"then wheels[#wheels+1]=entry.model end
+ end
+ local function batches(models,property,goal)
+  for first=1,#models,24 do local batch={};for i=first,math.min(#models,first+23)do batch[#batch+1]=models[i]end;queue[#queue+1]={models=batch,property=property,goal=goal,cycles=0}end
+ end
+ batches(collisions,"Collision",false);batches(hidden,"Transparency",1);batches(glass,"Transparency",.5)
+ batches(wheels,"Wheel speed",run.wheelSpeed);batches(wheels,"Wheel torque",run.wheelTorque)
+ return queue
+end
+function X.step(run)
+ if not run.propertyQueue then run.propertyQueue=X.queue(run);run.propertyIndex=1 end
+ local item=run.propertyQueue[run.propertyIndex]
+ if not item then run.phase="bind";run.phaseTime=0;return end
+ local function advance()run.propertyIndex=run.propertyIndex+1;run.phase="properties";run.phaseTime=0 end
+ if run.phase=="propertiesVerify"then
+  for model,expected in pairs(item.expected)do
+   local value=read(model,item.property)
+   if type(expected)=="boolean"then if value~=expected then return end
+   elseif not finite(value)or math.abs(value-expected)>.011 then return end
+  end
+  item.expected=nil;run.phase="properties";run.phaseTime=0;return
+ end
+ local batch={};item.expected={}
+ for _,model in ipairs(item.models)do
+  local current=read(model,item.property)
+  assert(current~=nil,"Нет свойства "..item.property.." у "..model.Name)
+  if current~=item.goal then
+   batch[#batch+1]=model
+   local expected=item.goal
+   if item.property=="Transparency"then expected=current>=.99 and 0 or math.min(1,current+.25)
+   elseif item.property=="Wheel speed"or item.property=="Wheel torque"then
+    local cycle=item.property=="Wheel speed"and speedCycle or torqueCycle;local position
+    for i,value in ipairs(cycle)do if math.abs(value-current)<.01 then position=i;break end end
+    assert(position,"Неизвестная настройка колеса: "..tostring(current));expected=cycle[position%#cycle+1]
+   end
+   item.expected[model]=expected
+  end
+ end
+ if #batch==0 then advance();return end
+ item.cycles=item.cycles+1;assert(item.cycles<=12,"Свойство не достигло заданного значения: "..item.property)
+ local args={item.property,batch}
+ if item.property=="Collision"then args[3]=false elseif item.property=="Transparency"then args[3]=.25 end
+ H.invoke(run,run.tools.props,run.tools.propsRF,args,"propertiesVerify")
+end
+function X.audit(record)
+ for _,entry in ipairs(record.models)do local q=entry.spec
+  if q.noCollide then assert(read(entry.model,"Collision")==false,"Коллизия не отключена: "..q.id)end
+  if q.transparency then local value=read(entry.model,"Transparency");assert(finite(value)and math.abs(value-q.transparency)<.011,"Не подтверждена прозрачность: "..q.id)end
+  if q.group=="wheel"then
+   assert(read(entry.model,"Wheel speed")==record.wheelSpeed and read(entry.model,"Wheel torque")==record.wheelTorque,"Не подтверждены скорость/момент колеса")
+   local collider=entry.model:FindFirstChild("InvisPart",true)or entry.model:FindFirstChild("WheelCollider",true)
+   assert(collider and collider.CanCollide,"У игрового колеса нет физической коллизии")
+  end
+ end
+end
+end
+
+do
+local B={};C.Build=B
+local names={place="Размещение",identify="Ожидание блока",scale="Размер и угол",verifyScale="Подтверждение размера",paint="Окраска",verifyPaint="Подтверждение цвета",advance="Следующая деталь",properties="Скрытие механизмов и настройки",propertiesVerify="Подтверждение свойств",bind="Подключение управления",tankBind="Подключение танка",tankBindVerify="Подтверждение управления",tuneStiffness="Жёсткость пружин",tuneDamping="Демпфирование",tuneLength="Длина подвески",finish="Завершение"}
+function B.duration(seconds)
+ if not finite(seconds)then return "уточняется"end
+ seconds=math.max(0,math.ceil(seconds))
+ if seconds>=3600 then return string.format("%d ч %02d мин",math.floor(seconds/3600),math.floor(seconds/60)%60)
+ elseif seconds>=60 then return string.format("%d мин %02d с",math.floor(seconds/60),seconds%60)end
+ return seconds.." с"
+end
+function B.start(run)
+ run.buildClock=0;run.buildRateClock=0;run.buildRateIndex=1;run.secondsPerPart=C.lastPartSeconds or(1.1+2/(run.speed or 1));run.progressClock=0
+ C.progress={state="Сборка",done=0,total=#run.plan.parts,ratio=0,elapsed=0,eta=#run.plan.parts*run.secondsPerPart,phase="Подготовка",speed=run.speed,name=run.plan.name}
+ if C.focusBuildUI then C.focusBuildUI()end
+ if C.refreshBuildUI then C.refreshBuildUI()end
+end
+function B.tick(dt,run)
+ if not run.paused then run.buildClock=(run.buildClock or 0)+dt end
+ run.progressClock=(run.progressClock or 0)+dt;if run.progressClock<.1 then return end;run.progressClock=0
+ local done=math.min(#run.plan.parts,math.max(0,run.index-1))
+ if run.index>(run.buildRateIndex or 1)then
+  local count=run.index-run.buildRateIndex;local seconds=(run.buildClock-run.buildRateClock)/count
+  run.secondsPerPart=run.buildRateIndex==1 and seconds or(run.secondsPerPart*.75+seconds*.25)
+  run.buildRateClock=run.buildClock;run.buildRateIndex=run.index;C.lastPartSeconds=run.secondsPerPart
+ end
+ local total=#run.plan.parts;local properties=run.propertyQueue and math.max(0,#run.propertyQueue-(run.propertyIndex or 1)+1)or 0
+ local remote=run.remoteCalls and run.remoteCalls>0 and run.remoteSeconds/run.remoteCalls or .15
+ local eta=(total-done)*run.secondsPerPart+properties*remote*2
+ local fraction=({place=0,identify=.2,scale=.35,verifyScale=.5,paint=.65,verifyPaint=.85,advance=.95})[run.phase]or 0
+ local ratio=math.min(.95,(done+fraction)/math.max(1,total)*.95)
+ if done==total then ratio=.95+(run.propertyQueue and((run.propertyIndex or 1)-1)/math.max(1,#run.propertyQueue)*.035 or 0)end
+ C.progress={state=run.paused and "Пауза"or "Сборка",done=done,total=total,ratio=math.min(.99,ratio),elapsed=run.buildClock,eta=eta,phase=names[run.phase]or "Настройка механики",speed=run.speed,name=run.plan.name}
+ if C.refreshBuildUI then C.refreshBuildUI()end
+end
+function B.stopped(run,message)
+ if not run or run.kind~="car"or not C.progress then return end
+ C.progress.state=run.buildComplete and "Собрано · закреплено"or "Остановлено"
+ C.progress.phase=run.buildComplete and "Проверь соединения перед снятием закрепления"or tostring(message or "Сборка остановлена")
+ if run.buildComplete then C.progress.done=C.progress.total;C.progress.ratio=1;C.progress.eta=0 end
+ if C.refreshBuildUI then C.refreshBuildUI()end
+end
+function B.pause()
+ local run=N.job;assert(run and run.kind=="car","Нет текущей сборки")
+ run.paused=not run.paused
+ A.status(run.paused and "Сборка на паузе. Уже отправленный запрос может завершиться."or "Сборка продолжена")
+ B.tick(.1,run)
+end
+function C.materialReport(plan)
+ local lines={};local data=me:FindFirstChild("Data")
+ for kind,objects in pairs(plan.bill)do
+  local need=(plan.required or plan.bill)[kind];local value=data and data:FindFirstChild(kind);local have=value and value.Value or 0
+  lines[#lines+1]={kind=kind,objects=objects,need=need,have=have,missing=math.max(0,need-have)}
+ end
+ table.sort(lines,function(a,b)return a.kind<b.kind end);return lines
+end
+end
+
+-- END NEBULA GARAGE DETAIL
 function C.cf(v,base,second)
  local pos=second and v.second or v.pos;local r=v.rot
  if not second and v.basis then return base*CFrame.new(pos[1],pos[2],pos[3],table.unpack(v.basis))end
@@ -405,12 +789,21 @@ function C.setAnchor()
 end
 function C.previewInto(parent,base)
  local plan=C.plan();local model=new("Model",{Name="NEBULA_CarPreview"},parent)
- for _,q in ipairs(plan.parts)do
+ local previewParts=plan.parts
+ if plan.bank=="new"and #previewParts>4000 then
+  previewParts={};for _,q in ipairs(plan.parts)do previewParts[#previewParts+1]=q end
+  table.sort(previewParts,function(a,b)local sa=a.size and a.size[2]*a.size[3]or math.huge;local sb=b.size and b.size[2]*b.size[3]or math.huge;return sa>sb end)
+  while #previewParts>4000 do table.remove(previewParts)end
+ end
+ for _,q in ipairs(previewParts)do
   local cf=C.cf(q,base);local size=q.size and Vector3.new(table.unpack(q.size))or(q.previewSize and Vector3.new(table.unpack(q.previewSize))or(q.group=="wheel"and Vector3.new(1,3,3)or Vector3.new(1,0.5,1)))
   if q.second then local endpoint=C.cf(q,base,true).Position;local start=cf.Position;size=Vector3.new(q.kind=="Spring"and 0.25 or 0.12,q.kind=="Spring"and 0.25 or 0.12,(endpoint-start).Magnitude);cf=CFrame.lookAt((start+endpoint)*0.5,endpoint)end
-  local part=new("Part",{Name=q.id,Size=size,CFrame=cf,Color=Color3.fromRGB(table.unpack(q.color)),Material=Enum.Material.SmoothPlastic,Anchored=true,CanCollide=false,CanTouch=false,CanQuery=false,CastShadow=false},model)
-  if q.kind=="GlassBlock"then part.Transparency=0.32 end
-  if q.group=="wheel"then part.Shape=Enum.PartType.Cylinder end
+  local nativeDrawn=C.Tank and C.Tank.previewNative(q,cf,model)
+  if not nativeDrawn then
+   local part=new(q.kind=="Wedge"and "WedgePart"or "Part",{Name=q.id,Size=size,CFrame=cf,Color=Color3.fromRGB(table.unpack(q.color)),Material=Enum.Material.SmoothPlastic,Anchored=true,CanCollide=false,CanTouch=false,CanQuery=false,CastShadow=false},model)
+   if q.transparency then part.Transparency=q.transparency elseif q.kind=="GlassBlock"then part.Transparency=.5 end
+   if q.group=="wheel"then part.Shape=Enum.PartType.Cylinder end
+  end
  end
  return model
 end
@@ -425,19 +818,215 @@ function C.check()
  assert(tools.bindRF and tools.bindRF:IsA("RemoteFunction"),"Нужна отвёртка BindTool.RF")
  assert(tools.propsRF and tools.propsRF:IsA("RemoteFunction"),"Нужен PropertiesTool.SetPropertieRF")
  local data=me:FindFirstChild("Data");local missing={}
- for kind,count in pairs(plan.bill)do local value=data and data:FindFirstChild(kind);if not value or type(value.Value)~="number"or value.Value<count then missing[#missing+1]=kind..": нужно "..count..", есть "..tostring(value and value.Value or 0)end end
+ for kind,count in pairs(plan.required or plan.bill)do local value=data and data:FindFirstChild(kind);if not value or type(value.Value)~="number"or value.Value<count then missing[#missing+1]=kind..": нужно "..count..", есть "..tostring(value and value.Value or 0)end end
  table.sort(missing);assert(#missing==0,"Не хватает блоков: "..table.concat(missing,"; "))
  local zone=H.findZone();assert(zone,"Зона команды не найдена")
  local blocks=workspace:FindFirstChild("Blocks");local folder=blocks and blocks:FindFirstChild(me.Name);assert(folder,"Собственная папка Blocks не загружена")
  return plan,tools,zone,folder,data
 end
+
+-- BEGIN NEBULA NATIVE TANK
+-- NEBULA native tank extension. Embedded in Garage, not an external executor loader.
+-- Complete tank behavior remains experimental until the deferred in-game checks.
+do
+local T={};C.Tank=T
+function T.previewNative(q,cf,parent)
+ if q.size or q.second then return false end
+ local storage=game:GetService("ReplicatedStorage");local templates=storage:FindFirstChild("BuildingParts");local original=templates and templates:FindFirstChild(q.kind)
+ if not original or not original:IsA("Model")then return false end
+ local clone=original:Clone();local primary=clone:FindFirstChild("PPart")or clone.PrimaryPart
+ if not primary then clone:Destroy();return false end
+ local old=primary.CFrame
+ for _,v in ipairs(clone:GetDescendants())do
+  if v:IsA("LuaSourceContainer")then v:Destroy()
+  elseif v:IsA("BasePart")then
+   v.CFrame=cf*old:ToObjectSpace(v.CFrame);v.Anchored=true;v.CanCollide=false;v.CanTouch=false;v.CanQuery=false;v.CastShadow=false
+   if not q.skipPaint then v.Color=Color3.fromRGB(table.unpack(q.color))end
+   if q.transparency then v.Transparency=q.transparency end
+  elseif v:IsA("Constraint")then v.Enabled=false end
+ end
+ clone.Name=q.id;clone.Parent=parent;return true
+end
+T.help="Q + E — вперёд; A + D — назад. Q + D / A + E — разворот. J/L — башня; I/K — ствол; F — игровая пушка; U/O — люк. Команды работают из водительского кресла."
+local function byId(record)
+ local ids={};for _,entry in ipairs(record.models)do ids[entry.spec.id]=entry.model end;return ids
+end
+local function beamTo(seat,model)
+ for _,beam in ipairs(seat:GetChildren())do
+  if beam:IsA("Beam")and beam.Attachment1 and beam.Attachment1.Parent and beam.Attachment1.Parent:IsDescendantOf(model)then return true end
+ end
+ return false
+end
+function T.validate(plan)
+ assert(plan.tank==true and plan.id=="abrams-m1a2"and plan.revision==2,"Неподдерживаемая схема танка")
+ assert(type(plan.trackLinks)=="number"and plan.trackLinks%1==0 and plan.trackLinks>=6 and plan.trackLinks<=80,"Неверная длина цепи")
+ local ids,pins,motors={}, {left=0,right=0},{left=0,right=0}
+ for _,q in ipairs(plan.parts)do
+  ids[q.id]=q
+  if q.group=="track"or q.group=="drive"then
+   assert(q.track=="left"or q.track=="right","Не указана сторона гусеницы")
+   if q.group=="track"then
+    assert(type(q.trackLink)=="number"and q.trackLink%1==0 and q.trackLink>=0 and q.trackLink<plan.trackLinks,"Неверный номер звена")
+    if q.kind=="Hinge"then pins[q.track]=pins[q.track]+1 end
+   else assert(q.kind=="Motor","В приводе нужен игровой Motor");motors[q.track]=motors[q.track]+1 end
+  end
+ end
+ for _,id in ipairs({"spine","driver","turretServo","gunServo","hatchServo","turret:frame","gun:frame","hatch:panel","cannon"})do assert(ids[id],"Нет узла: "..id)end
+ assert(ids.driver.kind=="CarSeat"and ids.cannon.kind=="Cannon","Неверные кресло/пушка")
+ for _,id in ipairs({"turretServo","gunServo","hatchServo"})do assert(ids[id].kind=="Servo","Не игровой сервопривод")end
+ for _,side in ipairs({"left","right"})do assert(pins[side]==plan.trackLinks and motors[side]>=2,"Неполная ходовая: "..side)end
+ assert(type(plan.controls)=="table","Нет описания управления")
+end
+function T.commands(record)
+ local ids=byId(record);local commands={}
+ local function add(models,keys)
+  assert(#models>0,"Нет управляемых механизмов")
+  local groups={}
+  for _,model in ipairs(models)do
+   local count=0
+   for _,v in ipairs(model:GetChildren())do local action=v:FindFirstChild("ActionName")
+    if v.Name:sub(1,4)=="Bind"and action and type(action.Value)=="string"then
+     assert(keys[action.Value],"Нет клавиши для "..action.Value)
+     groups[action.Value]=groups[action.Value]or {};table.insert(groups[action.Value],v);count=count+1
+    end
+   end
+   assert(count>0,"Механизм не поддерживает игровые привязки: "..model.Name)
+  end
+  local values={};for action,key in pairs(keys)do values[action]=Enum.KeyCode[key].Value end
+  commands[#commands+1]={groups=groups,models=models,keys=values}
+ end
+ for _,side in ipairs({"left","right"})do
+  local models={};for _,entry in ipairs(record.models)do if entry.spec.group=="drive"and entry.spec.track==side then models[#models+1]=entry.model end end
+  -- Mirrored axles require opposite angular velocity for the same travel direction.
+  add(models,side=="left"and {Forward="Q",Backward="A"}or {Forward="D",Backward="E"})
+ end
+ add({ids.turretServo},{Left="J",Right="L"})
+ add({ids.gunServo},{Left="K",Right="I"})
+ add({ids.hatchServo},{Left="U",Right="O"})
+ add({ids.cannon},{Activate="F"})
+ return commands,ids.driver
+end
+function T.step(run)
+ if run.phase=="bind"then
+  local record={models=run.models,plan=run.plan};run.tankCommands,run.tankSeat=T.commands(record);run.tankCommandIndex=1;run.phase="tankBind";run.phaseTime=0
+ end
+ if run.phase=="tankBind"then
+  local command=run.tankCommands[run.tankCommandIndex]
+  if not command then run.phase="finish";run.phaseTime=0;return end
+  -- Live tool schema: action groups, array of controllers, explicit keys, disconnect,
+  -- custom-seat-input mode. The game handles key events; no spoofed server packets.
+  H.invoke(run,run.tools.bind,run.tools.bindRF,{command.groups,{run.tankSeat},command.keys,false,true},"tankBindVerify")
+ elseif run.phase=="tankBindVerify"then
+  local command=run.tankCommands[run.tankCommandIndex]
+  for _,model in ipairs(command.models)do if not beamTo(run.tankSeat,model)then return end end
+  run.tankCommandIndex=run.tankCommandIndex+1;run.phase="tankBind";run.phaseTime=0
+ end
+end
+function T.audit(record)
+ assert(record and record.plan and record.plan.tank and #record.models==#record.plan.parts,"Нет законченного танка")
+ T.validate(record.plan)
+ local ids=byId(record);local allowed,parents={},{},{}
+ local function root(p)parents[p]=parents[p]or p;if parents[p]~=p then parents[p]=root(parents[p])end;return parents[p]end
+ local function union(a,b)if allowed[a]and allowed[b]then parents[root(a)]=root(b)end end
+ for _,entry in ipairs(record.models)do
+  assert(entry.model.Parent==record.folder,"Узел танка удалён/перемещён")
+  for _,part in ipairs(entry.model:GetDescendants())do if part:IsA("BasePart")then allowed[part]=entry.spec end end
+  if entry.spec.noCollide then local pp=entry.model:FindFirstChild("PPart");assert(pp and not pp.CanCollide,"Коллизия декоративной/внутренней детали не отключена: "..entry.spec.id)end
+ end
+ for _,entry in ipairs(record.models)do for _,joint in ipairs(entry.model:GetDescendants())do
+  if joint:IsA("Snap")or joint:IsA("Weld")or joint:IsA("ManualWeld")or joint:IsA("WeldConstraint")then union(joint.Part0,joint.Part1)end
+ end end
+ local spine=assert(ids.spine:FindFirstChild("PPart"));local bodyRoot=root(spine)
+ local turretRoot=root(ids["turret:frame"].PPart);local gunRoot=root(ids["gun:frame"].PPart);local hatchRoot=root(ids["hatch:panel"].PPart)
+ assert(turretRoot~=bodyRoot and gunRoot~=bodyRoot and gunRoot~=turretRoot and hatchRoot~=bodyRoot,"Подвижный узел жёстко сварен с корпусом")
+ local roots={body=bodyRoot,seat=bodyRoot,turret=turretRoot,gun=gunRoot,hatch=hatchRoot}
+ for part,spec in pairs(allowed)do if roots[spec.group]then assert(root(part)==roots[spec.group],"Не закреплена панель/деталь: "..spec.id)end end
+ local seat=assert(ids.driver:FindFirstChildWhichIsA("VehicleSeat",true),"Нет настоящего водительского кресла")
+ local function actuator(model,expectedBase,expectedOutput,mode)
+  local constraint=model:FindFirstChildWhichIsA("HingeConstraint",true)
+  assert(constraint and constraint.Enabled~=false and constraint.ActuatorType==mode and constraint.Attachment0 and constraint.Attachment1,"Нет рабочего привода: "..model.Name)
+  local a,b=constraint.Attachment0.Parent,constraint.Attachment1.Parent
+  assert(allowed[a]and allowed[b]and root(a)==expectedBase and root(a)~=root(b),"Привод закреплён неверно/заблокирован")
+  if expectedOutput then assert(root(b)==expectedOutput,"Выход привода не соединён со своим узлом")end
+  if mode==Enum.ActuatorType.Motor then assert(constraint.MotorMaxTorque>0,"Нулевой момент мотора")else assert(constraint.ServoMaxTorque>0,"Нулевой момент сервопривода")end
+  assert(beamTo(ids.driver,model),"Не подтверждена привязка кресла: "..model.Name)
+  return constraint
+ end
+ actuator(ids.turretServo,bodyRoot,turretRoot,Enum.ActuatorType.Servo)
+ actuator(ids.gunServo,turretRoot,gunRoot,Enum.ActuatorType.Servo)
+ actuator(ids.hatchServo,bodyRoot,hatchRoot,Enum.ActuatorType.Servo)
+ assert(root(ids.cannon.PPart)==gunRoot and beamTo(ids.driver,ids.cannon),"Пушка не соединена со стволом/креслом")
+ for _,entry in ipairs(record.models)do if entry.spec.group=="drive"then actuator(entry.model,bodyRoot,nil,Enum.ActuatorType.Motor)end end
+ for _,side in ipairs({"left","right"})do
+  local components,degrees,graph={},{},{};local hinges=0
+  for part,spec in pairs(allowed)do if spec.group=="track"and spec.track==side then local r=root(part);assert(r~=bodyRoot and r~=turretRoot and r~=gunRoot,"Гусеница приварена к корпусу/башне");components[r]=true end end
+  for _,entry in ipairs(record.models)do if entry.spec.group=="track"and entry.spec.track==side then
+   for _,j in ipairs(entry.model:GetDescendants())do if j:IsA("Rotate")then
+    local a,b=j.Part0,j.Part1
+    assert(allowed[a]and allowed[b]and allowed[a].track==side and allowed[b].track==side,"Шарнир гусеницы соединён с посторонней деталью")
+    a,b=root(a),root(b);assert(a~=b,"Шарнир звена жёстко замкнут")
+    hinges=hinges+1;degrees[a]=(degrees[a]or 0)+1;degrees[b]=(degrees[b]or 0)+1
+    graph[a]=graph[a]or {};graph[b]=graph[b]or {};table.insert(graph[a],b);table.insert(graph[b],a)
+   end end
+  end end
+  local count=0;local first;for r in pairs(components)do count=count+1;first=first or r;assert(degrees[r]==2,"У звена нет двух подвижных соседей")end
+  assert(count==record.plan.trackLinks and hinges==count,"Не все звенья/шарниры собраны: "..side)
+  local visited={};local function visit(r)if visited[r]then return end;visited[r]=true;for _,neighbor in ipairs(graph[r]or {})do visit(neighbor)end end;visit(first)
+  local connected=0;for _ in pairs(visited)do connected=connected+1 end;assert(connected==count,"Цепь разорвана: "..side)
+ end
+ return "Танк: две замкнутые шарнирные цепи, моторы, кресло, башня, подъём ствола и крепление пушки подтверждены. Езда и выстрел ещё требуют проверки в игре."
+end
+function T.sit()
+ assert(not N.job and C.last and C.last.plan.tank,"Нет готового своего танка")
+ local ids=byId(C.last);local seat=assert(ids.driver:FindFirstChildWhichIsA("VehicleSeat",true),"Нет кресла")
+ assert(ids.driver.Parent==C.last.folder,"Кресло перемещено")
+ local humanoid=assert(humOf(me),"Нет персонажа");humanoid:UnequipTools()
+ me.Character:PivotTo(seat.CFrame*CFrame.new(0,2.5,0));seat:Sit(humanoid)
+ A.status(T.help)
+end
+function T.startProbe()
+ assert(not N.job,"Сначала останови сборку");T.audit(C.last)
+ local ids=byId(C.last);local seat=ids.driver:FindFirstChildWhichIsA("VehicleSeat",true)
+ assert(seat.Occupant==humOf(me),"Сядь в водительское кресло танка")
+ local spine=ids.spine.PPart;assert(not spine.Anchored,"Танк ещё закреплён")
+ C.probe={tank=true,record=C.last,seat=seat,spine=spine,character=me.Character,origin=spine.Position,elapsed=0,distance=0,turn=0,yaw=math.atan2(-spine.CFrame.LookVector.X,-spine.CFrame.LookVector.Z),left=false,right=false,chain=false}
+ A.status("12 секунд: проедь и развернись. Замер не управляет танком. "..T.help)
+end
+function T.stepProbe(dt)
+ local p=C.probe;if not p then return end
+ if not A.alive or N.job or p.character~=me.Character or not p.spine.Parent or p.seat.Occupant~=humOf(me)then C.probe=nil;return end
+ p.elapsed=p.elapsed+dt;local delta=p.spine.Position-p.origin;p.distance=math.max(p.distance,math.sqrt(delta.X^2+delta.Z^2))
+ local angle=math.atan2(-p.spine.CFrame.LookVector.X,-p.spine.CFrame.LookVector.Z)-p.yaw;p.turn=math.max(p.turn,math.abs(math.atan2(math.sin(angle),math.cos(angle))))
+ for _,entry in ipairs(p.record.models)do
+  if entry.spec.group=="drive"then local c=entry.model:FindFirstChildWhichIsA("HingeConstraint",true);if c and math.abs(c.AngularVelocity)>.5 then p[entry.spec.track]=true end
+  elseif entry.spec.group=="track"and entry.spec.id:sub(-5)==":shoe"then local pp=entry.model:FindFirstChild("PPart");if pp and pp.AssemblyAngularVelocity.Magnitude>.5 then p.chain=true end end
+ end
+ if p.elapsed>=12 then
+  C.lastDriveReport={tank=true,seconds=p.elapsed,horizontalStuds=p.distance,yawDegrees=math.deg(p.turn),leftDriveSeen=p.left,rightDriveSeen=p.right,chainMotionSeen=p.chain,driveObserved=p.distance>2 and p.left and p.right and p.chain,steeringObserved=p.turn>math.rad(8)}
+  C.probe=nil;A.status(string.format("Танк: %.1f studs, поворот %.1f°. Движение цепи: %s. Стрельба этим замером не проверяется.",p.distance,math.deg(p.turn),p.chain and "видно"or "не подтверждено"))
+ end
+end
+end
+
+-- END NEBULA NATIVE TANK
+function C.validatePlot(plan,base,zone)
+ local function check(q,second)
+  local localCF=zone.CFrame:ToObjectSpace(C.cf(q,base,second))
+  local v={localCF:GetComponents()};local size=second and {2,1,2}or q.size or q.previewSize or(q.group=="seat"and {3,5,3}or {2,2,2})
+  local halfX=(math.abs(v[4])*size[1]+math.abs(v[5])*size[2]+math.abs(v[6])*size[3])*.5
+  local halfZ=(math.abs(v[10])*size[1]+math.abs(v[11])*size[2]+math.abs(v[12])*size[3])*.5
+  assert(math.abs(v[1])+halfX<=zone.Size.X*.5-1 and math.abs(v[3])+halfZ<=zone.Size.Z*.5-1,"Машина выходит за границы своего участка. Укажи точку внутри строительной зоны, затем проверь превью.")
+ end
+ for _,q in ipairs(plan.parts)do check(q,false);if q.second then check(q,true)end end
+end
 function C.start()
  assert(not N.job,"Сначала останови текущую задачу");local plan,tools,zone,folder,data=C.check();if not C.anchor then C.setAnchor()end
+ C.validatePlot(plan,C.anchor,zone)
  local run=N.prepare("car");run.plan=plan;run.tools=tools;run.zone=zone;run.folder=folder;run.data=data;run.base=C.anchor;run.speed=H.photoSpeed;run.interval=0.5/run.speed
  run.seen={};for _,m in ipairs(folder:GetChildren())do run.seen[m]=true end
  local preset=C.suspensions[C.suspension];run.tune={stiffness=preset.stiffness,damping=preset.damping}
  for _,q in ipairs(plan.parts)do if q.group=="spring"then local sum=0;for j=1,3 do sum=sum+(q.pos[j]-q.second[j])^2 end;run.tune.freeLength=math.sqrt(sum);break end end
- run.models={};run.phase="place";run.phaseTime=0;run.sendClock=0;C.last=nil;C.clearPreview()
+ run.models={};run.phase="place";run.phaseTime=0;run.sendClock=0;C.last=nil;C.clearPreview();run.wheelSpeed=C.wheelSpeed;run.wheelTorque=C.wheelTorque;C.Build.start(run)
  A.status("Гараж: экспериментальная сборка "..plan.name.." · "..#plan.parts.." деталей. Детали останутся закреплёнными.")
 end
 function C.bindingGroups(models)
@@ -455,6 +1044,8 @@ function C.bindingGroups(models)
  assert(count>=4,"Не обнаружены привязки всех колёс");return groups
 end
 function C.audit(record)
+ assert(record and record.plan and record.models,"Нет завершённой сборки");C.Properties.audit(record)
+ if record and record.plan and record.plan.tank then return C.Tank.audit(record)end
  assert(record and record.models and #record.models==#record.plan.parts,"Нет завершённой сборки")
  local allowed,parents,labels,carriers={},{},{},{};local wheels,springs,links=0,0,0;local seat;local spine
  local function root(v)if not parents[v]then parents[v]=v end;if parents[v]~=v then parents[v]=root(parents[v])end;return parents[v]end
@@ -468,7 +1059,7 @@ function C.audit(record)
  end
  assert(seat and seat:FindFirstChildWhichIsA("VehicleSeat",true),"Водительское сиденье не подтверждено")
  for _,entry in ipairs(record.models)do for _,joint in ipairs(entry.model:GetDescendants())do
-  if joint:IsA("Weld")or joint:IsA("WeldConstraint")or joint:IsA("ManualWeld")then union(joint.Part0,joint.Part1)end
+  if joint:IsA("Weld")or joint:IsA("WeldConstraint")or joint:IsA("ManualWeld")or joint:IsA("Snap")then union(joint.Part0,joint.Part1)end
  end end
  for part,group in pairs(allowed)do local key=root(part);labels[key]=labels[key]or {};labels[key][group]=true end
  assert(spine,"Не найден силовой каркас")
@@ -507,10 +1098,17 @@ function C.audit(record)
    if group=="spring"then springs=springs+1 else links=links+1 end
   end
  end
+ local rotors={}
+ for _,entry in ipairs(record.models)do if entry.spec.group=="wheel"then local hinge=entry.model:FindFirstChildWhichIsA("HingeConstraint",true);assert(hinge and hinge.Attachment1,"Нет ротора колеса");rotors[entry.spec.id]=root(hinge.Attachment1.Parent)end end
+ for _,entry in ipairs(record.models)do if entry.spec.group=="wheelSkin"then
+  local rotor=rotors[entry.spec.wheelId];assert(rotor,"Нет своего игрового колеса")
+  for _,part in ipairs(entry.model:GetDescendants())do if part:IsA("BasePart")then assert(root(part)==rotor,"Колёсный декор не соединён с ротором: "..entry.spec.id)end end
+ end end
  assert(wheels==4 and springs==4 and links==16,"Неполная ходовая часть")
  return record.plan.name..": 4 связи колёс, 4 пружины и 16 рычагов. Езда не проверена."
 end
 function C.step(dt,run)
+ C.Build.tick(dt,run);if run.paused then return end
  run.phaseTime=run.phaseTime+dt;run.sendClock=run.sendClock+dt
  if run.phaseTime>8 then N.stop("Гараж: нет подтверждения 8 секунд. Уже построенные детали сохранены.");return end
  if run.awaiting then return end
@@ -518,13 +1116,23 @@ function C.step(dt,run)
  if run.sendClock<(run.interval or 0.5)then return end;run.sendClock=0
  local q=run.plan.parts[run.index]
  if not q then
-  if run.phase=="bind"then
-   C.last={plan=run.plan,models=run.models,folder=run.folder,tune=run.tune,base=run.base}
+  if run.phase=="properties"or run.phase=="propertiesVerify"then C.Properties.step(run);return end
+  if run.plan.tank and(run.phase=="bind"or run.phase=="tankBind"or run.phase=="tankBindVerify")then C.Tank.step(run);return end
+  if run.phase=="skinCollision"then
+   run.skinCursor=run.skinCursor or 1;local batch={}
+   while run.skinCursor<=#run.models and #batch<32 do local entry=run.models[run.skinCursor];if entry.spec.noCollide then batch[#batch+1]=entry.model end;run.skinCursor=run.skinCursor+1 end
+   if #batch==0 then run.phase="bind";run.phaseTime=0;return end
+   run.skinBatch=batch;H.invoke(run,run.tools.props,run.tools.propsRF,{"Collision",batch,false},"verifySkinCollision");return
+  elseif run.phase=="verifySkinCollision"then
+   for _,m in ipairs(run.skinBatch)do local pp=m:FindFirstChild("PPart");if not pp or pp.CanCollide~=false then return end end
+   run.phase="skinCollision";run.phaseTime=0;return
+  elseif run.phase=="bind"then
+   C.last={plan=run.plan,models=run.models,folder=run.folder,tune=run.tune,base=run.base,wheelSpeed=run.wheelSpeed,wheelTorque=run.wheelTorque}
    local groups=C.bindingGroups(run.models);local seat
    for _,entry in ipairs(run.models)do if entry.spec.group=="seat"then seat=entry.model end end
    assert(seat,"Сиденье не найдено")
-   -- Current tool schema: action groups, controller, explicit keys, disconnect, switch mode.
-   H.invoke(run,run.tools.bind,run.tools.bindRF,{groups,seat,{},false,false},"tuneStiffness");return
+   -- Live BABFT BindLocalScript uses a controller array, even for one seat.
+   H.invoke(run,run.tools.bind,run.tools.bindRF,{groups,{seat},{},false,false},"tuneStiffness");return
   elseif run.phase=="tuneStiffness"or run.phase=="tuneDamping"then
    local springs={};for _,entry in ipairs(run.models)do if entry.spec.group=="spring"then springs[#springs+1]=entry.model end end
    local stiffness=run.phase=="tuneStiffness"
@@ -537,13 +1145,34 @@ function C.step(dt,run)
    end end
    run.phase=stiffness and "tuneDamping"or "tuneLength";run.phaseTime=0;return
   elseif run.phase=="tuneLength"then
+   local measuredSpring
+   for _,entry in ipairs(run.models)do if entry.spec.group=="spring"then measuredSpring=entry.model:FindFirstChildWhichIsA("SpringConstraint",true);break end end
+   assert(measuredSpring and measuredSpring.Attachment0 and measuredSpring.Attachment1,"Нет концов пружины")
+   run.tune.freeLength=(measuredSpring.Attachment0.WorldPosition-measuredSpring.Attachment1.WorldPosition).Magnitude
+   assert(finite(run.tune.freeLength)and run.tune.freeLength>.05,"Неверная длина подвески")
+   local measuredSpring
+   for _,entry in ipairs(run.models)do if entry.spec.group=="spring"then measuredSpring=entry.model:FindFirstChildWhichIsA("SpringConstraint",true);break end end
+   assert(measuredSpring and measuredSpring.Attachment0 and measuredSpring.Attachment1,"Нет концов пружины")
+   run.tune.freeLength=(measuredSpring.Attachment0.WorldPosition-measuredSpring.Attachment1.WorldPosition).Magnitude
+   assert(finite(run.tune.freeLength)and run.tune.freeLength>.05,"Неверная длина подвески")
+   local measuredSpring
+   for _,entry in ipairs(run.models)do if entry.spec.group=="spring"then measuredSpring=entry.model:FindFirstChildWhichIsA("SpringConstraint",true);break end end
+   assert(measuredSpring and measuredSpring.Attachment0 and measuredSpring.Attachment1,"Нет концов пружины")
+   run.tune.freeLength=(measuredSpring.Attachment0.WorldPosition-measuredSpring.Attachment1.WorldPosition).Magnitude
+   assert(finite(run.tune.freeLength)and run.tune.freeLength>.05,"Неверная длина подвески")
+   local measuredSpring
+   for _,entry in ipairs(run.models)do if entry.spec.group=="spring"then measuredSpring=entry.model:FindFirstChildWhichIsA("SpringConstraint",true);break end end
+   assert(measuredSpring and measuredSpring.Attachment0 and measuredSpring.Attachment1,"Нет концов пружины")
+   run.tune.freeLength=(measuredSpring.Attachment0.WorldPosition-measuredSpring.Attachment1.WorldPosition).Magnitude
+   assert(finite(run.tune.freeLength)and run.tune.freeLength>.05,"Неверная длина подвески")
    local springs={};for _,entry in ipairs(run.models)do if entry.spec.group=="spring"then springs[#springs+1]=entry.model end end
    H.invoke(run,run.tools.props,run.tools.propsRF,{"Target lenght",springs,run.tune.freeLength},"verifyLength");return
   elseif run.phase=="verifyLength"then
    for _,entry in ipairs(run.models)do if entry.spec.group=="spring"then local spring=entry.model:FindFirstChildWhichIsA("SpringConstraint",true);if not spring or not finite(spring.FreeLength)or math.abs(spring.FreeLength-run.tune.freeLength)>.01 then return end end end
    run.phase="finish";run.phaseTime=0;return
   elseif run.phase=="finish"then
-   C.last={plan=run.plan,models=run.models,folder=run.folder,tune=run.tune,base=run.base};N.stop("Кузов и механика размещены. Машина закреплена; проверь связи и ходовую перед запуском.");return
+   run.buildComplete=true
+   C.last={plan=run.plan,models=run.models,folder=run.folder,tune=run.tune,base=run.base,wheelSpeed=run.wheelSpeed,wheelTorque=run.wheelTorque};N.stop("Кузов и механика размещены. Машина закреплена; проверь связи и ходовую перед запуском.");return
   end
  end
  assert(q,"Неизвестная стадия сборки")
@@ -563,11 +1192,11 @@ function C.step(dt,run)
   assert(run.part.Parent,"Деталь удалена");if (run.part.Size-Vector3.new(table.unpack(q.size))).Magnitude<=.005 and C.poseClose(run.part.CFrame,cf)then run.phase="paint";run.phaseTime=0 end
  elseif run.phase=="paint"then H.invoke(run,run.tools.paint,run.tools.paintRF,{{{run.model,color}}},"verifyPaint")
  elseif run.phase=="advance"then
-  run.index=run.index+1;run.phase=run.index>#run.plan.parts and "bind"or "place";run.phaseTime=0
+  run.index=run.index+1;run.phase=run.index>#run.plan.parts and "properties"or "place";run.phaseTime=0
  elseif run.phase=="verifyPaint"then
   assert(run.part.Parent,"Деталь удалена");local c=run.part.Color
   if math.abs(c.R-color.R)+math.abs(c.G-color.G)+math.abs(c.B-color.B)<0.04 then
-   run.index=run.index+1;run.phase=run.index>#run.plan.parts and "bind"or "place";run.phaseTime=0
+   run.index=run.index+1;run.phase=run.index>#run.plan.parts and "properties"or "place";run.phaseTime=0
    A.status("Гараж · "..run.plan.name.." · "..(run.index-1).." / "..#run.plan.parts)
   end
  end
@@ -605,6 +1234,7 @@ function C.stepAlign(dt,run)
  if run.phase=="align"then H.invoke(run,run.tool,run.remote,{{entry.model},pp.CFrame,target,"Move"},"verifyAlign")end
 end
 function C.startDriveProbe()
+ if C.last and C.last.plan.tank then return C.Tank.startProbe()end
  assert(not N.job,"Сначала останови задачу");C.audit(C.last)
  local seat,spine
  for _,entry in ipairs(C.last.models)do if entry.spec.group=="seat"then seat=entry.model:FindFirstChildWhichIsA("VehicleSeat",true)end;if entry.spec.id=="spine"then spine=entry.model:FindFirstChild("PPart")end end
@@ -614,6 +1244,7 @@ function C.startDriveProbe()
  A.status("12 секунд: сам проедь вперёд и поверни. Проверка только измеряет, не управляет персонажем.")
 end
 function C.stepProbe(dt)
+ if C.probe and C.probe.tank then return C.Tank.stepProbe(dt)end
  local p=C.probe;if not p then return end
  if not A.alive or N.job or p.character~=me.Character or not p.spine.Parent or p.seat.Occupant~=humOf(me)then C.probe=nil;A.status("Проверка езды отменена: изменилось сиденье/персонаж/задача");return end
  p.elapsed=p.elapsed+dt;local delta=p.spine.Position-p.origin
@@ -628,5 +1259,5 @@ function C.stepProbe(dt)
   A.status(string.format("Замер: %.1f studs; поворот %.1f°. Движение: %s; поворот: %s. Это наблюдение, не гарантия устойчивости.",report.horizontalStuds,report.yawDegrees,report.driveObserved and "видно"or "не подтверждено",report.steeringObserved and "видно"or "не подтверждено"))
  end
 end
-function C.cleanup()C.probe=nil;C.lastDriveReport=nil;C.clearPreview();C.anchor=nil;C.last=nil;destroy(C.stage);C.stage=nil end
+function C.cleanup()C.cancelNewLoad();C.newCache={};C.probe=nil;C.lastDriveReport=nil;C.clearPreview();C.anchor=nil;C.last=nil;destroy(C.stage);C.stage=nil end
 end
