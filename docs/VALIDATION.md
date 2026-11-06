@@ -1,1 +1,1 @@
-6.11-preview.4: Luau syntax, aircraft revision 2 geometry/bill/orthonormality/flap edge fit/nozzle rings/complete visible preview, and offline car seat binding tests passed. Final Roblox appearance, flight, servo directions and physics remain unverified.
+6.11-preview.5: Luau compilation, revision 3 geometry, closure panels, axle/hub alignment, fixed/releasable pylon clearance, visible preview completeness, offline car binding tests and public file integrity passed. Roblox appearance, actual welds, flight and release remain unverified.

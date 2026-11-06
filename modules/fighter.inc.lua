@@ -15,7 +15,7 @@ local function beamTo(controller,model)
 end
 local function value(model,name)local v=model and model:FindFirstChild(name);return v and v.Value end
 function F.validate(plan)
- assert(plan.aircraft==true and not plan.tank and plan.id=="su57"and plan.revision==2,"Неподдерживаемая схема самолёта: загрузи обновлённую модель")
+ assert(plan.aircraft==true and not plan.tank and plan.id=="su57"and plan.revision==3,"Неподдерживаемая схема самолёта: загрузи обновлённую модель")
  local ids={};local jets,payloads,glue,delays=0,0,0,0
  for _,q in ipairs(plan.parts)do
   ids[q.id]=q
@@ -82,6 +82,10 @@ function F.prepare(plan)
   payload.pos[2]=payloadY;delay.pos[2]=payloadY
   delay.pos[3]=payload.pos[3]-(payloadSize and payloadSize.Size.Z or 2)*.5-(delaySize and delaySize.Size.Z or 2)*.5
   ids["bombFrame:"..side].pos[2]=payloadY-py*.5-.2
+  -- Keep the release rack visibly continuous with the pylon while preserving a
+  -- gap to fixed airframe parts. Glue remains the only rigid release bridge.
+  local rack=ids["bombRack:"..side]
+  if rack then local bottom=payloadY+.75;local top=7.30;assert(top>bottom,"Glue/payload dimensions do not fit the release rack");rack.pos[2]=(top+bottom)*.5;rack.size[2]=top-bottom end
  end
  plan.bill={};for _,q in ipairs(plan.parts)do plan.bill[q.kind]=(plan.bill[q.kind]or 0)+1 end
  return plan

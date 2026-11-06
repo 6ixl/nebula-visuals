@@ -1,4 +1,4 @@
--- NEBULA CONTROL 1.14-preview.4 | independent client tools | no remote loaders
+-- NEBULA CONTROL 1.14-preview.5 | independent client tools | no remote loaders
 -- RightAlt: menu; F6: fly; F7: noclip; F8: ESP. All modules start disabled.
 local P=game:GetService("Players")
 local R=game:GetService("RunService")
@@ -9,7 +9,7 @@ local me=P.LocalPlayer
 assert(me,"NEBULA Control requires a client")
 local env=(getgenv and getgenv())or _G
 if env.__NEBULA_CONTROL and env.__NEBULA_CONTROL.Unload then pcall(env.__NEBULA_CONTROL.Unload)end
-local A={Version="1.14-preview.4",alive=true,connections={},characterConnections={},playerConnections={},props={},esp={},widgets={},pages={},indexed={},commands={},aliases={},history={},waypoints={},selected=nil}
+local A={Version="1.14-preview.5",alive=true,connections={},characterConnections={},playerConnections={},props={},esp={},widgets={},pages={},indexed={},commands={},aliases={},history={},waypoints={},selected=nil}
 env.__NEBULA_CONTROL=A
 local S={esp=false,names=true,health=true,distance=true,boxes=false,tracers=false,throughWalls=true,teamColors=true,teamFilter=false,visibleOnly=false,selectedOnly=false,
     espRange=1500,espSize=13,espHue=0.76,boxMode=1,espThickness=1,offscreen=false,
@@ -1599,11 +1599,13 @@ end
 
 
 
+
+
 -- BEGIN NEW GARAGE BANK
 -- Two independent shape banks. Legacy geometry is preserved; New loads validated data only.
 local oldPlan=C.plan
 C.bank="legacy";C.bankSelections={legacy=1,new=1};C.newCache={};C.newLoadNonce=0
-C.newCatalog={{id="mclaren-720s",name="720S · Papaya ? New",inspired="McLaren 720S",parts=3396,author="_shobh19",legacyBase=1},{id="mclaren-p1",name="P1 · Volcano ? New",inspired="McLaren P1",parts=7926,author="vecarz",legacyBase=2},{id="mclaren-senna",name="Senna · Track ? New",inspired="McLaren Senna",parts=12427,author="Black Snow",legacyBase=3},{id="ferrari-488",name="488 GTB · Rosso ? New",inspired="Ferrari 488 GTB",parts=5862,author="Dev365TH",legacyBase=4},{id="ferrari-sf90-xx",name="SF90 · Stradale ? New",inspired="Ferrari SF90 Stradale",parts=9089,author="Ddiaz Design",legacyBase=5},{id="huracan-evo-rebuilt",name="Huracán EVO · Verde ? New",inspired="Lamborghini Huracán EVO",parts=7912,author="Galaxy Car Showroom",legacyBase=6},{id="porsche-gt3-rs",name="911 GT3 RS · Weissach ? New",inspired="Porsche 911 GT3 RS (992)",parts=9990,author="Black Snow",legacyBase=7},{id="bugatti-chiron",name="Chiron · Atlantic ? New",inspired="Bugatti Chiron",parts=10499,author="DisneyCars",legacyBase=8},{id="koenigsegg-jesko",name="Jesko Attack · Pearl ? New",inspired="Koenigsegg Jesko Attack",parts=4996,author="Ddiaz Design",legacyBase=9},{id="nissan-custom-gtr",name="GT-R R35 · Gunmetal ? New",inspired="Nissan GT-R R35 (2017)",parts=9616,author="Socksthecat",legacyBase=10},{id="abrams-m1a2",name="Abrams · цельная броня / New",inspired="Abrams M1A2 SEPv3",parts=2518,author="6ixl / NEBULA",tank=true},{id="su57",name="Су-57 · New",inspired="Су-57 · оригинальная блоковая интерпретация",parts=4461,author="6ixl / NEBULA",aircraft=true}}
+C.newCatalog={{id="mclaren-720s",name="720S · Papaya ? New",inspired="McLaren 720S",parts=3396,author="_shobh19",legacyBase=1},{id="mclaren-p1",name="P1 · Volcano ? New",inspired="McLaren P1",parts=7926,author="vecarz",legacyBase=2},{id="mclaren-senna",name="Senna · Track ? New",inspired="McLaren Senna",parts=12427,author="Black Snow",legacyBase=3},{id="ferrari-488",name="488 GTB · Rosso ? New",inspired="Ferrari 488 GTB",parts=5862,author="Dev365TH",legacyBase=4},{id="ferrari-sf90-xx",name="SF90 · Stradale ? New",inspired="Ferrari SF90 Stradale",parts=9089,author="Ddiaz Design",legacyBase=5},{id="huracan-evo-rebuilt",name="Huracán EVO · Verde ? New",inspired="Lamborghini Huracán EVO",parts=7912,author="Galaxy Car Showroom",legacyBase=6},{id="porsche-gt3-rs",name="911 GT3 RS · Weissach ? New",inspired="Porsche 911 GT3 RS (992)",parts=9990,author="Black Snow",legacyBase=7},{id="bugatti-chiron",name="Chiron · Atlantic ? New",inspired="Bugatti Chiron",parts=10499,author="DisneyCars",legacyBase=8},{id="koenigsegg-jesko",name="Jesko Attack · Pearl ? New",inspired="Koenigsegg Jesko Attack",parts=4996,author="Ddiaz Design",legacyBase=9},{id="nissan-custom-gtr",name="GT-R R35 · Gunmetal ? New",inspired="Nissan GT-R R35 (2017)",parts=9616,author="Socksthecat",legacyBase=10},{id="abrams-m1a2",name="Abrams · цельная броня / New",inspired="Abrams M1A2 SEPv3",parts=2518,author="6ixl / NEBULA",tank=true},{id="su57",name="Су-57 · New",inspired="Су-57 · оригинальная блоковая интерпретация",parts=4598,author="6ixl / NEBULA",aircraft=true}}
 function C.currentCatalog()return C.bank=="new"and C.newCatalog or C.catalog end
 function C.importNew(value,id)
  assert(type(value)=="table"and value.format=="nebula-vehicle-1"and value.id==id,"Неверный формат новой модели")
@@ -1684,10 +1686,10 @@ function C.loadSelectedNew()
     text=readfile(path)
     if entry.aircraft then
      local parsed,localData=pcall(function()return game:GetService("HttpService"):JSONDecode(text)end)
-     if not parsed or localData.revision~=2 then text=nil end
+     if not parsed or localData.revision~=3 then text=nil end
     end
    end
-   if not text then text=game:HttpGet("https://raw.githubusercontent.com/6ixl/nebula-visuals/v6.11-preview.4/assets/new/"..entry.id..".json")end
+   if not text then text=game:HttpGet("https://raw.githubusercontent.com/6ixl/nebula-visuals/v6.11-preview.5/assets/new/"..entry.id..".json")end
    assert(type(text)=="string"and #text<=16777216,"Файл модели больше 16 МиБ")
    assert(A.alive and C.bank=="new"and nonce==C.newLoadNonce,"Загрузка отменена")
    return game:GetService("HttpService"):JSONDecode(text)
@@ -2255,6 +2257,7 @@ end
 
 -- END NEBULA NATIVE TANK
 
+
 -- BEGIN NEBULA NATIVE FIGHTER
 -- Su-57-inspired native BABFT aircraft adapter. No local CFrame flight or fake explosion.
 -- Flight, servo directions and release timing require the deferred Roblox session.
@@ -2273,7 +2276,7 @@ local function beamTo(controller,model)
 end
 local function value(model,name)local v=model and model:FindFirstChild(name);return v and v.Value end
 function F.validate(plan)
- assert(plan.aircraft==true and not plan.tank and plan.id=="su57"and plan.revision==2,"Неподдерживаемая схема самолёта: загрузи обновлённую модель")
+ assert(plan.aircraft==true and not plan.tank and plan.id=="su57"and plan.revision==3,"Неподдерживаемая схема самолёта: загрузи обновлённую модель")
  local ids={};local jets,payloads,glue,delays=0,0,0,0
  for _,q in ipairs(plan.parts)do
   ids[q.id]=q
@@ -2340,6 +2343,10 @@ function F.prepare(plan)
   payload.pos[2]=payloadY;delay.pos[2]=payloadY
   delay.pos[3]=payload.pos[3]-(payloadSize and payloadSize.Size.Z or 2)*.5-(delaySize and delaySize.Size.Z or 2)*.5
   ids["bombFrame:"..side].pos[2]=payloadY-py*.5-.2
+  -- Keep the release rack visibly continuous with the pylon while preserving a
+  -- gap to fixed airframe parts. Glue remains the only rigid release bridge.
+  local rack=ids["bombRack:"..side]
+  if rack then local bottom=payloadY+.75;local top=7.30;assert(top>bottom,"Glue/payload dimensions do not fit the release rack");rack.pos[2]=(top+bottom)*.5;rack.size[2]=top-bottom end
  end
  plan.bill={};for _,q in ipairs(plan.parts)do plan.bill[q.kind]=(plan.bill[q.kind]or 0)+1 end
  return plan
@@ -2691,6 +2698,11 @@ function C.step(dt,run)
    end end
    run.phase=stiffness and "tuneDamping"or "tuneLength";run.phaseTime=0;return
   elseif run.phase=="tuneLength"then
+   local measuredSpring
+   for _,entry in ipairs(run.models)do if entry.spec.group=="spring"then measuredSpring=entry.model:FindFirstChildWhichIsA("SpringConstraint",true);break end end
+   assert(measuredSpring and measuredSpring.Attachment0 and measuredSpring.Attachment1,"Нет концов пружины")
+   run.tune.freeLength=(measuredSpring.Attachment0.WorldPosition-measuredSpring.Attachment1.WorldPosition).Magnitude
+   assert(finite(run.tune.freeLength)and run.tune.freeLength>.05,"Неверная длина подвески")
    local measuredSpring
    for _,entry in ipairs(run.models)do if entry.spec.group=="spring"then measuredSpring=entry.model:FindFirstChildWhichIsA("SpringConstraint",true);break end end
    assert(measuredSpring and measuredSpring.Attachment0 and measuredSpring.Attachment1,"Нет концов пружины")
@@ -3601,6 +3613,8 @@ helperToggle("vd","skillHelper","District · запрос успешного ski
 action(N.panels.vd,"District · пройти обнаруженные генераторы",function()N.select("vd");H.startDistrict()end,"Проверяет RepairProgress; 10 секунд без серверного прогресса останавливают цикл")
 action(N.panels.boat,"Boat · помощник прохождения · повторять",function()N.select("boat");N.loops=0;N.startBoat()end,"Проходы до сундука с ожиданием настоящего возрождения. Серверная победа/награда не гарантируется.")
 action(N.panels.boat,"Гараж · 10 спорткаров",function()A.switchPage("Гараж")end,"McLaren Ferrari Porsche Lamborghini колёса подвеска машины")
+
+
 
 
 
