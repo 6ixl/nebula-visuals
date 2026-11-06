@@ -15,7 +15,7 @@ local function beamTo(controller,model)
 end
 local function value(model,name)local v=model and model:FindFirstChild(name);return v and v.Value end
 function F.validate(plan)
- assert(plan.aircraft==true and not plan.tank and plan.id=="su57"and plan.revision==1,"Неподдерживаемая схема самолёта")
+ assert(plan.aircraft==true and not plan.tank and plan.id=="su57"and plan.revision==2,"Неподдерживаемая схема самолёта: загрузи обновлённую модель")
  local ids={};local jets,payloads,glue,delays=0,0,0,0
  for _,q in ipairs(plan.parts)do
   ids[q.id]=q
